@@ -50,14 +50,13 @@ entity  ControlUnit  is
         FetchIR          :  out std_logic; 
 
         PushPop 		 : out    std_logic_vector(1 downto 0);
-        StackOperation   : out    std_logic_vector(7 downto 0);
         RegisterEn       : out    std_logic;
 		RegisterSel	 	 : out 	  std_logic_vector(4 downto 0);
         RegisterASel     : out    std_logic_vector(4 downto 0);
 		RegisterBSel     : out    std_logic_vector(4 downto 0);
 		RegisterXYZEn 	 : out    std_logic;
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
-		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
+		DMAOp 			 : out 	  std_logic_vector(1 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
         FlagMask         : out    std_logic_vector(7 downto 0);
         Immediate        : out    std_logic_vector(7 downto 0);
@@ -662,10 +661,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -675,10 +673,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -691,10 +688,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -704,10 +700,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -721,6 +716,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel(4) <= '1';
 		 		RegisterSel(3 downto 0) <= InstructionOpCode(7 downto 4); -- register to write to
+		 		OpSel <= "0000000001";
 		 		Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 		 		Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
 		 		Read <= '0'; -- we are reading
@@ -730,6 +726,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel(4) <= '1';
 		 		RegisterSel(3 downto 0) <= InstructionOpCode(7 downto 4); -- register to write to
+		 		OpSel <= "0000000001";
 		 		Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 		 		Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
 		 		Read <= '0'; -- we are reading
@@ -951,10 +948,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -964,10 +960,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -981,10 +976,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -994,10 +988,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
 		 		DMAOp <= "00";
-		 		Immediate(0) <= '0';
-		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
-		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
-		 		Immediate(6) <= InstructionOpCode(13);
+		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
+		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
+		 		Immediate(5) <= InstructionOpCode(13);
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -1030,22 +1023,15 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
-		 		DMAOp <= "00";
 		 		PushPop <= "01";
-		 		Immediate <= "00000001";
-		 		--StackOperation <= 
-		 		Read <= '0'; -- we are reading
-		 		Write <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
-		 		DMAOp <= "00";
+		 		
 		 		PushPop <= "01";
-		 		Immediate <= "00000001";
-		 		--StackOperation <= 
-		 		Read <= '0'; -- we are reading
-		 		Write <= '1'; -- we are not writing
+		 		
+		 		
 		 		FlagMask <= "00000000"; -- don't change any flags
 		  	END IF;
 		 End if;
@@ -1053,22 +1039,16 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	if(cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		DMAOp <= "01";
+		 		
 		 		PushPop <= "11";
-		 		Immediate <= "00000001";
-		 		--StackOperation <= 
-		 		Read <= '1'; -- we are reading
-		 		Write <= '0'; -- we are not writing
+		 		
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	else -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		DMAOp <= "01";
+		 		
 		 		PushPop <= "11";
-		 		Immediate <= "00000001";
-		 		--StackOperation <= 
-		 		Read <= '1'; -- we are reading
-		 		Write <= '0'; -- we are not writing
+
 		 		FlagMask <= "00000000"; -- don't change any flags
 		  	end if;
 		end if;

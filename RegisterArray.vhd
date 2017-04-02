@@ -50,10 +50,12 @@ entity  RegisterArray  is
         Immediate:  in  std_logic_vector(7 downto 0);
         RegXYZEn :  in  std_logic;
         RegXYZSel:  in  std_logic_vector(1 downto 0);
-        
-        RegAOut  :  inout std_logic_vector(7 downto 0);       -- register bus A out
-        RegBOut  :  inout std_logic_vector(7 downto 0);       -- register bus B out
-        RegXYZOut: inout std_logic_vector(15 downto 0)
+        InputXYZ :  in  std_logic_vector(15 downto 0);
+        WriteXYZ :  in  std_logic;
+
+        RegAOut  :  out std_logic_vector(7 downto 0);       -- register bus A out
+        RegBOut  :  out std_logic_vector(7 downto 0);       -- register bus B out
+        RegXYZOut:  out std_logic_vector(15 downto 0)
     );
 end  RegisterArray;
 
@@ -71,6 +73,14 @@ architecture Registers of RegisterArray is
     signal    Q26, Q27, Q28, Q29, Q30 :  std_logic_vector(7 downto 0);
     signal    Q31                     :  std_logic_vector(7 downto 0);
     signal    RegIn                   :  std_logic_vector(7 downto 0);
+    signal    RegInLow                :  std_logic_vector(7 downto 0);
+    signal    RegInHigh               :  std_logic_vector(7 downto 0);
+    signal    SelXLow : std_logic;
+    signal    SelXHigh: std_logic;
+    signal    SelYLow : std_logic;
+    signal    SelYHigh: std_logic;
+    signal    SelZLow : std_logic;
+    signal    SelZHigh: std_logic;
     
     -- Each register is an 8 bit register
     component Register8Bit is
@@ -119,6 +129,49 @@ architecture Registers of RegisterArray is
     end component;
 
 begin
+    with RegXYZSel select SelXLow  <=
+        '1'            when "00",
+        SelectLine(26) when "01",
+        SelectLine(26) when "10",
+        SelectLine(26) when "11";
+
+    with RegXYZSel select SelXHigh  <=
+        '1'            when "00",
+        SelectLine(27) when "01",
+        SelectLine(27) when "10",
+        SelectLine(27) when "11";
+
+    with RegXYZSel select SelYLow  <=
+        SelectLine(28) when "00",
+        '1'            when "01",
+        SelectLine(28) when "10",
+        SelectLine(28) when "11";
+
+    with RegXYZSel select SelYHigh  <=
+        SelectLine(29) when "00",
+        '1'            when "01",
+        SelectLine(29) when "10",
+        SelectLine(29) when "11";
+
+    with RegXYZSel select SelZLow  <=
+        SelectLine(30) when "00",
+        SelectLine(30) when "01",
+        '1'            when "10",
+        SelectLine(30) when "11";
+
+    with RegXYZSel select SelZHigh  <=
+        SelectLine(31) when "00",
+        SelectLine(31) when "01",
+        '1'            when "10",
+        SelectLine(31) when "11";
+
+    with WriteXYZ select RegInLow <=
+        InputXYZ(7 downto 0) when '1',
+        RegIn     when '0';
+
+    with WriteXYZ select RegInHigh <=
+        InputXYZ(15 downto 8) when '1',
+        RegIn     when '0';
 
     with UseImmed select RegIn <=
         Immediate when '1',
@@ -275,26 +328,26 @@ begin
     );    
     
     Register_26: Register8Bit PORT MAP (
-        D => RegIn, Q => Q26, En => SelectLine(26), Clock => clock
+        D => RegInLow, Q => Q26, En => SelXLow, Clock => clock
     );
 
     Register_27: Register8Bit PORT MAP (
-        D => RegIn, Q => Q27, En => SelectLine(27), Clock => clock
+        D => RegInHigh, Q => Q27, En => SelXHigh, Clock => clock
     );
 
     Register_28: Register8Bit PORT MAP (
-        D => RegIn, Q => Q28, En => SelectLine(28), Clock => clock
+        D => RegInLow, Q => Q28, En => SelYLow, Clock => clock
     );
 
     Register_29: Register8Bit PORT MAP (
-        D => RegIn, Q => Q29, En => SelectLine(29), Clock => clock
+        D => RegInHigh, Q => Q29, En => SelYHigh, Clock => clock
     );
 
     Register_30: Register8Bit PORT MAP (
-        D => RegIn, Q => Q30, En => SelectLine(30), Clock => clock
+        D => RegInLow, Q => Q30, En => SelZLow, Clock => clock
     );
 
     Register_31: Register8Bit PORT MAP (
-        D => RegIn, Q => Q31, En => SelectLine(31), Clock => clock
+        D => RegInHigh, Q => Q31, En => SelZHigh, Clock => clock
     );
 end architecture; 

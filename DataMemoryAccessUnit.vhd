@@ -27,7 +27,6 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity DataMemoryAccessUnit is
     port(
-	    LoadImmediate:  in   std_logic;
         InputAddress:   in   std_logic_vector(7 downto 0);
         Clock     :     in   std_logic;
         WrIn      :     in   std_logic;
