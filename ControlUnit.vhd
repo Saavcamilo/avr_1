@@ -49,6 +49,7 @@ entity  ControlUnit  is
         IRQ 			 :  in  std_logic_vector(7 downto 0);	
         FetchIR          :  out std_logic; 
 
+        PushPop 		 : out    std_logic_vector(1 downto 0);
         StackOperation   : out    std_logic_vector(7 downto 0);
         RegisterEn       : out    std_logic;
 		RegisterSel	 	 : out 	  std_logic_vector(4 downto 0);
@@ -82,7 +83,10 @@ begin
 		-- initialize outputs
         RegisterXYZEn <= '0'; -- xyz register is inactive
 		RegisterXYZSel <= "00"; -- xyz register is selecting x
-		DMAOp <= "000"; 
+		PushPop <= "00"; -- PushPop(1): "0" means pop, "1" means push
+				   		 -- PushPop(0): active high enable
+		DMAOp <= "00";  -- DMAOp(1): "0" use register, "1" use ImmediateM
+						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
         ImmediateM <= "0000000000000000";
         Read <= '1';	-- active low read signal
 		Write <= '1'; 	-- active low write signal
@@ -496,7 +500,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000000";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -506,7 +510,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000000";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -519,7 +523,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -529,7 +533,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -542,7 +546,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -552,7 +556,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -565,7 +569,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -575,7 +579,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -588,7 +592,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -598,7 +602,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -611,7 +615,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -621,7 +625,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -634,7 +638,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -644,7 +648,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '0'; -- we are reading
 		 		Write <= '1'; -- we are not writing
@@ -657,7 +661,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -670,7 +674,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -686,7 +690,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -699,7 +703,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -778,7 +782,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000000";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -788,7 +792,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000000";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -802,7 +806,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -812,7 +816,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -826,7 +830,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -836,7 +840,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -850,7 +854,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -860,7 +864,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -874,7 +878,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -884,7 +888,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -898,7 +902,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -908,7 +912,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -922,7 +926,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -932,7 +936,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "001";
+		 		DMAOp <= "01";
 		 		Immediate <= "00000001";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
@@ -946,7 +950,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -959,7 +963,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -976,7 +980,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -989,7 +993,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 		DMAOp <= "000";
+		 		DMAOp <= "00";
 		 		Immediate(0) <= '0';
 		 		Immediate(3 downto 1) <= InstructionOpCode(2 downto 0);
 		 		Immediate(5 downto 4) <= InstructionOpCode(11 downto 10);
@@ -1006,7 +1010,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
-		 		DMAOp <= "010";
+		 		DMAOp <= "10";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -1015,7 +1019,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
-		 		DMAOp <= "010";
+		 		DMAOp <= "10";
 		 		Read <= '1'; -- we are reading
 		 		Write <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
@@ -1026,7 +1030,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
-		 		DMAOp <= "100";
+		 		DMAOp <= "00";
+		 		PushPop <= "01";
 		 		Immediate <= "00000001";
 		 		--StackOperation <= 
 		 		Read <= '0'; -- we are reading
@@ -1035,7 +1040,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
-		 		DMAOp <= "100";
+		 		DMAOp <= "00";
+		 		PushPop <= "01";
 		 		Immediate <= "00000001";
 		 		--StackOperation <= 
 		 		Read <= '0'; -- we are reading
@@ -1047,7 +1053,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	if(cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		DMAOp <= "101";
+		 		DMAOp <= "01";
+		 		PushPop <= "11";
 		 		Immediate <= "00000001";
 		 		--StackOperation <= 
 		 		Read <= '1'; -- we are reading
@@ -1056,7 +1063,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	else -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		DMAOp <= "101";
+		 		DMAOp <= "01";
+		 		PushPop <= "11";
 		 		Immediate <= "00000001";
 		 		--StackOperation <= 
 		 		Read <= '1'; -- we are reading
