@@ -34,7 +34,7 @@ entity DataMemoryAccessUnit is
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
-        AddrOpSel :     in   std_logic_vector(3 downto 0);
+        AddrOpSel :     in   std_logic_vector(1 downto 0);
         DataDB    :     inout   std_logic_vector(7 downto 0);
         
         DataAB    :     out   std_logic_vector(15 downto 0);
@@ -69,11 +69,10 @@ AddrAdder: AddressAdder PORT MAP(
     Subtract => AddrOpSel(3), A => InputAddress, B => Offset, 
     LogicAddress => AddedAddr);
     
-DataAB  <=    AddedAddr when AddrOpSel(3) = '1' else
+DataAB  <=    AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
               
-NewAddr <=    AddedAddr when AddrOpSel(3) = '0' else
-              InputAddress;              
+NewAddr <=    AddedAddr;              
     
     transition: process(CurrentState)
     begin
@@ -87,7 +86,7 @@ NewAddr <=    AddedAddr when AddrOpSel(3) = '0' else
             when CLK1 =>
                 NextState <= Clk2;
             when CLK2 =>
-                if (LoadImmediate = '1') then
+                if (AddrOpSel(1) = '1') then
                     NextState <= CLK3;
                 else
                     NextState <= Idle; 
