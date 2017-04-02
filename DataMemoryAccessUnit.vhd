@@ -27,7 +27,7 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity DataMemoryAccessUnit is
     port(
-        InputAddress:   in   std_logic_vector(7 downto 0);
+        InputAddress:   in   std_logic_vector(15 downto 0);
         Clock     :     in   std_logic;
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
@@ -65,7 +65,7 @@ end Component;
 begin
 
 AddrAdder: AddressAdder PORT MAP(
-    Subtract => AddrOpSel(3), A => InputAddress, B => Offset, 
+    Subtract => AddrOpSel(1), A => InputAddress, B => Offset, 
     LogicAddress => AddedAddr);
     
 DataAB  <=    AddedAddr when AddrOpSel(0) = '1' else
@@ -90,6 +90,8 @@ NewAddr <=    AddedAddr;
                 else
                     NextState <= Idle; 
                 end if;
+			   when others =>
+				    NextState <= Idle;
         end case;
     end process transition;
 
@@ -105,6 +107,7 @@ NewAddr <=    AddedAddr;
                     DataWr <= WrIn;
                     DataRd <= RdIn;
                 end if;
+				when others => 
         end case;
     end process outputs;
 

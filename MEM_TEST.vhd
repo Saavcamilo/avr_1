@@ -61,9 +61,9 @@ entity  MEM_TEST  is
 end entity;
 
 architecture TB_ARCHITECTURE of MEM_TEST is
-component DMA is
+component DataMemoryAccessUnit is
     port(
-        InputAddress:   in   std_logic_vector(7 downto 0);
+        InputAddress:   in   std_logic_vector(15 downto 0);
         Clock     :     in   std_logic;
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
@@ -130,14 +130,10 @@ end  Component;
     signal FlagMask  :  std_logic_vector(7 downto 0);      -- Flag Mask
     signal Constants :  std_logic_vector(7 downto 0);      -- Immediate value
     signal ImmediateM : std_logic_vector(15 downto 0);     -- immediate value of
-                                                              address for STS, LDS
-    
-
-    signal clock     :  std_logic;
+                                                             
     signal FetchedInstruction : opcode_word;
     signal IRQ       :  std_logic_vector(7 downto 0);   
     signal Fetch     :  std_logic;
-    signal PushPop : std_logic_vector(7 downto 0);
     signal RegisterEn     : std_logic;
     signal RegisterSel    : std_logic_vector(4 downto 0);
     signal RegisterASel   : std_logic_vector(4 downto 0);
@@ -161,10 +157,10 @@ end  Component;
 begin
 
     -- Unit Under Test port map
-    UUT : DMA   port map  (
-        InputAddress => ResultA, Clock => clock, WrIn => Write, RdIn => Read, 
+    UUT : DataMemoryAccessUnit   port map  (
+        InputAddress => ResultXYZ, Clock => clock, WrIn => Write, RdIn => Read, 
         Offset => Constants(5 downto 0), ProgDB => ProgDB, AddrOpSel => DMAOp,
-        DataDB => DataDB, DataAB => DataAB, NewAddr => InputXYZ, DataWr => DataWr
+        DataDB => DataDB, DataAB => DataAB, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd);
 
     Controller : ControlUnit  port map (
@@ -187,13 +183,4 @@ begin
         RegAOut => ResultA, RegBOut => ResultB, RegXYZOut => ResultXYZ
     );
 
-
-    CLK: process
-    begin
-        clock <= '1';
-        wait for 5 ns; -- define a clock
-        clock <= '0';
-        wait for 5 ns;
-    end process CLK;
-
-end  MEM_TEST;
+end  architecture;

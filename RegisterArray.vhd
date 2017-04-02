@@ -113,7 +113,7 @@ architecture Registers of RegisterArray is
         D31:                       std_logic_vector(7 downto 0);
         Sel:                      in std_logic_vector(1 downto 0);
         En:                       in std_logic;
-        Q:                        out std_logic_vector(7 downto 0)
+        Q:                        out std_logic_vector(15 downto 0)
         
     );
     end component;
@@ -128,7 +128,7 @@ architecture Registers of RegisterArray is
     );
     end component;
 
-begin
+begin 
     with RegXYZSel select SelXLow  <=
         '1'            when "00",
         SelectLine(26) when "01",

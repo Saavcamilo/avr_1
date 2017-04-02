@@ -47,19 +47,19 @@ begin
 
     if (En = '1') then
         case Sel is 
-
-            when "00" => Q(7 downto 0) <= D26
-            when "01" => Q(7 downto 0) <= D28
-            when "10" => Q(7 downto 0) <= D30
+            when "00" => Q(7 downto 0) <= D26;
+            when "01" => Q(7 downto 0) <= D28;
+            when "10" => Q(7 downto 0) <= D30;
             when others => Q(7 downto 0) <= "UUUUUUUU";
-
-            when "00" => Q(15 downto 8) <= D27
-            when "01" => Q(15 downto 8) <= D29
-            when "10" => Q(15 downto 8) <= D31
+        end case;
+		  case Sel is
+            when "00" => Q(15 downto 8) <= D27;
+            when "01" => Q(15 downto 8) <= D29;
+            when "10" => Q(15 downto 8) <= D31;
             when others => Q(15 downto 8) <= "UUUUUUUU";
-
-    end if;
-    end process;
+        end case;
+    end if; 
+    end process; 
 
             
 end architecture;
