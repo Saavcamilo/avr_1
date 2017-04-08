@@ -165,6 +165,8 @@ end  Component;
     --line number of the file read or written.
     signal    linenumber : integer:=1; 
 
+    variable setup_done : std_logic:=0;
+
 
 begin
 
@@ -209,7 +211,7 @@ begin
         variable  inline    : line; --line number declaration
         variable  dataread1    : bit_vector(2 downto 0);
     begin
-    wait until clock = '1' and clock'event;
+    wait until clock = '1' and clock'event and setup_done;
     if (not endfile(infile)) then   --checking the "END OF FILE" is not reached.
     readline(infile, inline);       --reading a line from the file.
       --reading the data from the line and putting it in a real type variable.
@@ -219,6 +221,245 @@ begin
     endoffile <='1';         --set signal to tell end of file read file is reached.
     end if;
 
-end process reading;
+    end process reading;
+
+
+
+
+
+
+    -- now generate the stimulus and test it
+    process
+    begin  -- of stimulus process
+
+
+    -- fill registers with values
+
+    -- put 0 in r0
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010000000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 1 in r1
+    RegVal <= "00000001";
+    FetchedInstruction <= "1001010000010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 2 in r2
+    RegVal <= "00000010";
+    FetchedInstruction <= "1001010000100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 3 in r3
+    RegVal <= "00000011";
+    FetchedInstruction <= "1001010000110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+
+     -- put 4 in r4
+    RegVal <= "00000100";
+    FetchedInstruction <= "1001010001000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 8 in r5
+    RegVal <= "00001000";
+    FetchedInstruction <= "1001010001010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 10 in r6
+    RegVal <= "00001010";
+    FetchedInstruction <= "1001010001100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 0 in r7
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010001110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+     
+     -- put 15 in r8
+    RegVal <= "00001111";
+    FetchedInstruction <= "1001010010000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 16 in r9
+    RegVal <= "00010000";
+    FetchedInstruction <= "1001010010010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 32 in r10
+    RegVal <= "00100000";
+    FetchedInstruction <= "1001010010100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 64 in r11
+    RegVal <= "01000000";
+    FetchedInstruction <= "1001010010110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 128 in r12
+    RegVal <= "10000000";
+    FetchedInstruction <= "1001010011000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 255 in r13
+    RegVal <= "11111111";
+    FetchedInstruction <= "1001010011010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 0 in r14
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010011100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 1 in r15
+    RegVal <= "00000001";
+    FetchedInstruction <= "1001010011110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 2 in r16
+    RegVal <= "00000010";
+    FetchedInstruction <= "1001010100000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 3 in r17
+    RegVal <= "00000011";
+    FetchedInstruction <= "1001010100010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 4 in r18
+    RegVal <= "00000100";
+    FetchedInstruction <= "1001010100100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 170 in r19
+    RegVal <= "10101010";
+    FetchedInstruction <= "1001010100110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 255 in r20
+    RegVal <= "11111111";
+    FetchedInstruction <= "1001010101000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 240 in r21
+    RegVal <= "11110000";
+    FetchedInstruction <= "1001010101010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 160 in r22
+    RegVal <= "10100000";
+    FetchedInstruction <= "1001010101100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 128 in r23
+    RegVal <= "10000000";
+    FetchedInstruction <= "1001010101110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 51 in r24
+    RegVal <= "00110011";
+    FetchedInstruction <= "1001010110000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 52 in r25
+    RegVal <= "00110100";
+    FetchedInstruction <= "1001010110010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 113 in r26
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010110100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 119 in r27
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010110110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 44 in r28
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010111000101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 45 in r29
+    RegVal <= "00000001";
+    FetchedInstruction <= "1001010111010101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 111 in r30
+    RegVal <= "00000000";
+    FetchedInstruction <= "1001010111100101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    -- put 112 in r31
+    RegVal <= "10000000";
+    FetchedInstruction <= "1001010111110101";
+    wait for 25 ns;
+    FetchedInstruction <= "0001010000000001";
+    wait for 15 ns;
+
+    setup_done := 1;
 
 end  architecture;
