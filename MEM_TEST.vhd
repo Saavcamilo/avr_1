@@ -56,7 +56,7 @@ entity  MEM_TEST  is
         IR      :  in     opcode_word;                      -- Instruction Register
         ProgDB  :  in     std_logic_vector(15 downto 0);    -- second word of instruction
         Reset   :  in     std_logic;                        -- system reset signal (active low)
-        clock   :  in     std_logic;                        -- system clock
+        clk   :  in     std_logic;                        -- system clock
         DataAB  :  out    std_logic_vector(15 downto 0);    -- data address bus
         DataDB  :  inout  std_logic_vector(7 downto 0);     -- data data bus
         DataRd  :  out    std_logic;                        -- data read (active low)
@@ -103,8 +103,8 @@ Component ControlUnit is
         FlagMask         : out    std_logic_vector(7 downto 0);
         Immediate        : out    std_logic_vector(7 downto 0);
         ImmediateM       : out    std_logic_vector(15 downto 0);
-        Read             : out    std_logic;
-        Write            : out    std_logic
+        Read_Mem         : out    std_logic;
+        Write_Mem        : out    std_logic
         );
 end component;
 
@@ -128,7 +128,7 @@ Component  RegisterArray  is
         RegXYZOut:  out std_logic_vector(15 downto 0)
     );
 end  Component;
-    
+    signal Clock: std_logic;
     signal OperandSel : std_logic_vector(9 downto 0);
     signal Flag      :  std_logic_vector(7 downto 0);      -- Flag inputs    
     signal FlagMask  :  std_logic_vector(7 downto 0);      -- Flag Mask
@@ -144,8 +144,8 @@ end  Component;
     signal RegisterBSel   : std_logic_vector(4 downto 0);
     signal RegisterXYZEn  : std_logic;
     signal RegisterXYZSel : std_logic_vector(1 downto 0);
-    signal Read           : std_logic;
-    signal Write          : std_logic;
+    signal Read_Mem       : std_logic;
+    signal Write_Mem      : std_logic;
 
     signal DMAOp     :  std_logic_vector(1 downto 0);
     signal PushPop   :  std_logic_vector(1 downto 0);
@@ -159,7 +159,7 @@ end  Component;
 
 
     --period of clock,bit for indicating end of file.
-    signal clock,endoffile : bit := '0';
+    signal endoffile : bit := '0';
     --data read from the file.
     signal    dataread : real;
     --data to be saved into the output file.
@@ -172,7 +172,7 @@ begin
 
     -- Unit Under Test port map
     UUT : DataMemoryAccessUnit   port map  (
-        InputAddress => ResultXYZ, Clock => clock, WrIn => Write, RdIn => Read, 
+        InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
         Offset => Constants(5 downto 0), ProgDB => ProgDB, AddrOpSel => DMAOp,
         DataDB => DataDB, DataAB => DataAB, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd);
@@ -185,8 +185,8 @@ begin
             RegisterBSel => RegisterBSel, RegisterXYZEn => RegisterXYZEn,
             RegisterXYZSel => RegisterXYZSel, DMAOp => DMAOp, 
             OpSel => OperandSel, FlagMask => FlagMask,
-            Immediate => Constants, ImmediateM => ImmediateM, Read => Read,
-            Write => Write
+            Immediate => Constants, ImmediateM => ImmediateM, Read_Mem => Read_Mem,
+            Write_Mem => Write_Mem
     );
 
     Registers : RegisterArray       port map  (
@@ -197,15 +197,14 @@ begin
         RegAOut => ResultA, RegBOut => ResultB, RegXYZOut => ResultXYZ
     );
 
-    CLK: process
+    CLK_Drive: process
     begin
         clock <= '1';
         wait for 5 ns; -- define a clock
         clock <= '0';
         wait for 5 ns;
-    end process CLK;
+    end process CLK_Drive;
               
-
     reading :
     process
         file   infile    : text is in  "memInput.txt";   --declare input file
@@ -223,13 +222,5 @@ begin
     end if;
 
 end process reading;
-
-    -- now generate the stimulus and test it
-    process
-    begin  -- of stimulus process
-
-    
-
-
 
 end  architecture;
