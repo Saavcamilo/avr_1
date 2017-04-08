@@ -81,7 +81,7 @@ begin
 	begin
 		-- initialize outputs
         RegisterXYZEn <= '0'; -- xyz register is inactive
-		RegisterXYZSel <= "00"; -- xyz register is selecting x
+		RegisterXYZSel <= "11"; -- xyz register is selecting x
 		PushPop <= "00"; -- PushPop(1): "0" means pop, "1" means push
 				   		 -- PushPop(0): active high enable
 		DMAOp <= "00";  -- DMAOp(1): "0" use register, "1" use ImmediateM
@@ -1067,7 +1067,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 									-- then next cycle continue to fetch
 					end if;
             when FETCH =>
-                if ((std_match(InstructionOpCode, OpSBIW)) or (std_match(InstructionOpCode, OpADIW))) then
+                if ((std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDX)) or 
+					     (std_match(InstructionOpCode, OpLDX))) then
                     NextState <= STALL; -- if instruction is one of the two cycle instructions, then stall
 										-- next cycle
                 end if;

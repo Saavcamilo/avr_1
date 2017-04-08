@@ -73,11 +73,11 @@ DataAB  <=    AddedAddr when AddrOpSel(0) = '1' else
               
 NewAddr <=    AddedAddr;              
     
-    transition: process(CurrentState)
+    transition: process(CurrentState, Clock)
     begin
         case CurrentState is
             when Idle =>
-                if (WrIn = '1' or RdIn = '1') then
+                if (WrIn = '0' or RdIn = '0') then
                     NextState <= CLK1;
                 else
                     NextState <= Idle;

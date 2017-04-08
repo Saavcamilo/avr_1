@@ -146,7 +146,7 @@ end  Component;
     signal RegisterXYZSel : std_logic_vector(1 downto 0);
     signal Read_Mem       : std_logic;
     signal Write_Mem      : std_logic;
-
+	 signal Data_AB1  :  std_logic_vector(15 downto 0);
     signal DMAOp     :  std_logic_vector(1 downto 0);
     signal PushPop   :  std_logic_vector(1 downto 0);
 
@@ -161,7 +161,7 @@ end  Component;
     --period of clock,bit for indicating end of file.
     signal endoffile : bit := '0';
     --data read from the file.
-    signal    dataread : std_logic_vector(2 downto 0);
+    signal    dataread : std_logic_vector(15 downto 0);
     --line number of the file read or written.
     signal    linenumber : integer:=1; 
 	signal    read_file  : std_logic := '0';
@@ -169,16 +169,16 @@ end  Component;
 
 
 begin
-
+	DataAB <= Data_AB1;
     -- Unit Under Test port map
     UUT : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
         Offset => Constants(5 downto 0), ProgDB => ProgDB, AddrOpSel => DMAOp,
-        DataDB => DataDB, DataAB => DataAB, NewAddr => InputXYZ, DataWr => DataWr,
+        DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd);
 
     Controller : ControlUnit  port map (
-            clock => clock, InstructionOpcode => IR, Flags => Flag,
+            clock => clock, InstructionOpcode => FetchedInstruction, Flags => Flag,
             IRQ => IRQ, FetchIR => Fetch, PushPop => PushPop, 
             RegisterEn => RegisterEn,
             RegisterSel => RegisterSel, RegisterASel => RegisterASel, 
@@ -193,7 +193,7 @@ begin
         clock => clock, Enable => RegisterEn, UseImmed => OperandSel(0), 
         Selects => RegisterSel, RegASel => RegisterASel, RegBSel => RegisterBSel, 
         Input => RegVal, Immediate => Constants, RegXYZEn => RegisterXYZEn, 
-        RegXYZSel => RegisterXYZSel, InputXYZ => InputXYZ, WriteXYZ => WriteXYZ,
+        RegXYZSel => RegisterXYZSel, InputXYZ => InputXYZ, WriteXYZ => RegisterXYZEn,
         RegAOut => ResultA, RegBOut => ResultB, RegXYZOut => ResultXYZ
     );
 
@@ -209,11 +209,11 @@ begin
     process
         file   infile    : text is in  "memInput.txt";   --declare input file
         variable  inline    : line; --line number declaration
-        variable  dataread1    : bit_vector(2 downto 0);
+        variable  dataread1    : bit_vector(15 downto 0);
 	      
 
     begin
-    wait until clock = '1' and clock'event and setup_done = '1';
+    wait until clock = '1' and clock'event and read_file = '1';
     if (not endfile(infile)) then   --checking the "END OF FILE" is not reached.
     readline(infile, inline);       --reading a line from the file.
       --reading the data from the line and putting it in a real type variable.
@@ -463,15 +463,16 @@ begin
     wait for 15 ns;
 
     read_file <= '1';
-
+    wait for 10 ns;
     for i in 0 to 1 loop
 
         FetchedInstruction <= dataread;
         read_file <= '0';
         wait for 20 ns;
         read_file <= '1';
-        assert (std_match(DataAB, dataread)) report "LD" & INTEGER'IMAGE(i); -- check load instructions
-
+		  wait for 5 ns;
+        assert (std_match(Data_AB1, dataread)) report "LD" & INTEGER'IMAGE(i); -- check load instructions
+        wait for 5 ns;
     end loop;
 
 
