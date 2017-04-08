@@ -164,7 +164,7 @@ end  Component;
     signal    dataread : std_logic_vector(2 downto 0);
     --line number of the file read or written.
     signal    linenumber : integer:=1; 
-	 signal    setup_done: std_logic := '0';
+	signal    read_file  : std_logic := '0';
 
 
 
@@ -462,6 +462,21 @@ begin
     FetchedInstruction <= "0001010000000001";
     wait for 15 ns;
 
-    setup_done <= '1';
+    read_file <= '1';
+
+    for i in 0 to 1 loop
+
+        FetchedInstruction <= dataread;
+        read_file <= '0';
+        wait for 20 ns;
+        read_file <= '1';
+        assert (std_match(DataAB, dataread)) report "LD" & INTEGER'IMAGE(i); -- check load instructions
+
+    end loop;
+
+
+
+
+
 	end process;
 end  architecture;
