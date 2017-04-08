@@ -164,8 +164,8 @@ end  Component;
     signal    dataread : std_logic_vector(2 downto 0);
     --line number of the file read or written.
     signal    linenumber : integer:=1; 
+	 signal    setup_done: std_logic := '0';
 
-    variable setup_done : std_logic:=0;
 
 
 begin
@@ -210,8 +210,10 @@ begin
         file   infile    : text is in  "memInput.txt";   --declare input file
         variable  inline    : line; --line number declaration
         variable  dataread1    : bit_vector(2 downto 0);
+	      
+
     begin
-    wait until clock = '1' and clock'event and setup_done;
+    wait until clock = '1' and clock'event and setup_done = '1';
     if (not endfile(infile)) then   --checking the "END OF FILE" is not reached.
     readline(infile, inline);       --reading a line from the file.
       --reading the data from the line and putting it in a real type variable.
@@ -460,6 +462,6 @@ begin
     FetchedInstruction <= "0001010000000001";
     wait for 15 ns;
 
-    setup_done := 1;
-
+    setup_done <= '1';
+	end process;
 end  architecture;
