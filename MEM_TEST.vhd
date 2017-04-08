@@ -161,9 +161,7 @@ end  Component;
     --period of clock,bit for indicating end of file.
     signal endoffile : bit := '0';
     --data read from the file.
-    signal    dataread : real;
-    --data to be saved into the output file.
-    signal    datatosave : real;
+    signal    dataread : std_logic_vector(2 downto 0);
     --line number of the file read or written.
     signal    linenumber : integer:=1; 
 
@@ -209,14 +207,14 @@ begin
     process
         file   infile    : text is in  "memInput.txt";   --declare input file
         variable  inline    : line; --line number declaration
-        variable  dataread1    : real;
+        variable  dataread1    : bit_vector(2 downto 0);
     begin
     wait until clock = '1' and clock'event;
     if (not endfile(infile)) then   --checking the "END OF FILE" is not reached.
     readline(infile, inline);       --reading a line from the file.
       --reading the data from the line and putting it in a real type variable.
     read(inline, dataread1);
-    dataread <=dataread1;   --put the value available in variable in a signal.
+    dataread <= To_stdlogicvector(dataread1);   --put the value available in variable in a signal.
     else
     endoffile <='1';         --set signal to tell end of file read file is reached.
     end if;
