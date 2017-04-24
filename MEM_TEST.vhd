@@ -161,21 +161,22 @@ end  Component;
     --period of clock,bit for indicating end of file.
     signal endoffile : bit := '0';
     --data read from the file.
-    signal    dataread : std_logic_vector(15 downto 0);
+    signal    dataread : std_logic_vector(31 downto 0);
     --line number of the file read or written.
     signal    linenumber : integer:=1; 
 	signal    read_file  : std_logic := '0';
-
+    signal   DataRd1 : std_logic;
 
 
 begin
 	DataAB <= Data_AB1;
+	DataRd <= DataRd1;
     -- Unit Under Test port map
     UUT : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
         Offset => Constants(5 downto 0), ProgDB => ProgDB, AddrOpSel => DMAOp,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
-        DataRd => DataRd);
+        DataRd => DataRd1);
 
     Controller : ControlUnit  port map (
             clock => clock, InstructionOpcode => FetchedInstruction, Flags => Flag,
@@ -209,7 +210,7 @@ begin
     process
         file   infile    : text is in  "memInput.txt";   --declare input file
         variable  inline    : line; --line number declaration
-        variable  dataread1    : bit_vector(15 downto 0);
+        variable  dataread1    : bit_vector(31 downto 0);
 	      
 
     begin
@@ -466,12 +467,12 @@ begin
     wait for 10 ns;
     for i in 0 to 1 loop
 
-        FetchedInstruction <= dataread;
+        FetchedInstruction <= dataread(31 downto 16);
         read_file <= '0';
-        wait for 20 ns;
+        wait for 15 ns;
         read_file <= '1';
-		  wait for 5 ns;
-        assert (std_match(Data_AB1, dataread)) report "LD" & INTEGER'IMAGE(i); -- check load instructions
+		  wait for 10 ns;
+        assert (std_match(Data_AB1, dataread(15 downto 0))) report "LD" & INTEGER'IMAGE(i); -- check load instructions
         wait for 5 ns;
     end loop;
 
