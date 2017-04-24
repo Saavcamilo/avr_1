@@ -73,7 +73,7 @@ DataAB  <=    AddedAddr when AddrOpSel(0) = '1' else
               
 NewAddr <=    AddedAddr;              
     
-    transition: process(CurrentState, Clock)
+    transition: process(CurrentState, WrIn, RdIn, Clock)
     begin
         case CurrentState is
             when Idle =>
@@ -87,6 +87,8 @@ NewAddr <=    AddedAddr;
             when CLK2 =>
                 if (AddrOpSel(1) = '1') then
                     NextState <= CLK3;
+					 elsif (WrIn = '0' or RdIn = '0') then
+                    NextState <= CLK1; 
                 else
                     NextState <= Idle; 
                 end if;
@@ -95,17 +97,22 @@ NewAddr <=    AddedAddr;
         end case;
     end process transition;
 
-    outputs: process (Clock)
+    outputs: process (Clock, CurrentState)
     begin
         case CurrentState is
             when Idle =>
-
+                    DataWr <= '1';
+						  DataRd <= '1';
             when CLK1 =>
-
+                    DataWr <= '1';
+						  DataRd <= '1';
             when CLK2 =>
-                if (falling_edge(Clock)) then 
+                if (Clock = '0') then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
+				    else
+                    DataWr <= '1';
+						  DataRd <= '1';					 
                 end if;
 				when others => 
         end case;
@@ -113,7 +120,7 @@ NewAddr <=    AddedAddr;
 
     storage: process (Clock)
     begin
-        if (rising_edge(Clock)) then
+        if (falling_edge(Clock)) then
             CurrentState <= NextState;
         end if;
     end process storage;
