@@ -166,6 +166,7 @@ end  Component;
     signal    linenumber : integer:=1; 
 	signal    read_file  : std_logic := '0';
     signal   DataRd1 : std_logic;
+    signal   LDRImmed : std_logic;
 
 
 begin
@@ -185,13 +186,13 @@ begin
             RegisterSel => RegisterSel, RegisterASel => RegisterASel, 
             RegisterBSel => RegisterBSel, RegisterXYZEn => RegisterXYZEn,
             RegisterXYZSel => RegisterXYZSel, DMAOp => DMAOp, 
-            OpSel => OperandSel, FlagMask => FlagMask,
+            OpSel => OperandSel, LDRImmed => LDRImmed, FlagMask => FlagMask,
             Immediate => Constants, ImmediateM => ImmediateM, Read_Mem => Read_Mem,
             Write_Mem => Write_Mem
     );
 
     Registers : RegisterArray       port map  (
-        clock => clock, Enable => RegisterEn, UseImmed => OperandSel(0), 
+        clock => clock, Enable => RegisterEn, UseImmed => LDRImmed, 
         Selects => RegisterSel, RegASel => RegisterASel, RegBSel => RegisterBSel, 
         Input => RegVal, Immediate => Constants, RegXYZEn => RegisterXYZEn, 
         RegXYZSel => RegisterXYZSel, InputXYZ => InputXYZ, WriteXYZ => RegisterXYZEn,
@@ -475,6 +476,14 @@ begin
         assert (std_match(Data_AB1, dataread(15 downto 0))) report "LD" & INTEGER'IMAGE(i); -- check load instructions
         wait for 5 ns;
     end loop;
+
+
+    -- meminput.txt comments:
+    --lines 1-30 test instruction LD (LDX, LDXI, LDXD, LDYI, LDYD, LDZI, LDZD)
+    --lines 31-38 test instructions LDD (LDDY, LDDZ)
+        --lines 31-34 test LDDY
+        --lines 25-38 test LDDZ
+
 
 
 
