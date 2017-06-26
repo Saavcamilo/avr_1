@@ -1055,8 +1055,11 @@ If (std_match(InstructionOpCode, OpLDX)) then
 									-- then next cycle continue to fetch
 					end if;
             when FETCH =>
-                if ((std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDX)) or 
-					     (std_match(InstructionOpCode, OpLDX))) then
+                if ((std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDXI)) or 
+					     (std_match(InstructionOpCode, OpLDXD)) or (std_match(InstructionOpCode, OpLDYI))
+						 or (std_match(InstructionOpCode, OpLDYD)) or (std_match(InstructionOpCode, OpLDZI))
+						 or (std_match(InstructionOpCode, OpLDZD)) or (std_match(InstructionOpCode, OpLDDY))
+						 or (std_match(InstructionOpCode, OpLDDZ))) then
                     NextState <= STALL; -- if instruction is one of the two cycle instructions, then stall
 										-- next cycle
                 end if;

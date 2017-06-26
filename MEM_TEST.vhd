@@ -100,6 +100,7 @@ Component ControlUnit is
         RegisterXYZSel   : out    std_logic_vector(1 downto 0);
         DMAOp            : out    std_logic_vector(1 downto 0);
         OpSel            : out    std_logic_vector(9 downto 0);
+        LDRImmed         : out    std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
         Immediate        : out    std_logic_vector(7 downto 0);
         ImmediateM       : out    std_logic_vector(15 downto 0);
@@ -464,18 +465,22 @@ begin
     FetchedInstruction <= "0001010000000001";
     wait for 15 ns;
 
-    read_file <= '1';
-    wait for 10 ns;
-    for i in 0 to 1 loop
 
-        FetchedInstruction <= dataread(31 downto 16);
-        read_file <= '0';
-        wait for 15 ns;
-        read_file <= '1';
-		  wait for 10 ns;
-        assert (std_match(Data_AB1, dataread(15 downto 0))) report "LD" & INTEGER'IMAGE(i); -- check load instructions
-        wait for 5 ns;
+    for i in 0 to 29 loop
+	 
+		read_file <= '1';
+		wait for 10 ns;
+		FetchedInstruction <= dataread(31 downto 16);
+		read_file <= '0';
+		wait for 15 ns;
+		assert (std_match(Data_AB1, dataread(15 downto 0))) report "test " & INTEGER'IMAGE(i); -- check load instructions
+		wait for 5 ns;
+		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
+		
     end loop;
+	 
+	 
+	 wait for 1000 ns;
 
 
     -- meminput.txt comments:
