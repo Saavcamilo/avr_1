@@ -65,10 +65,10 @@ end Component;
 begin
 
 AddrAdder: AddressAdder PORT MAP(
-    Subtract => AddrOpSel(1), A => InputAddress, B => Offset, 
+    Subtract => AddrOpSel(0), A => InputAddress, B => Offset, 
     LogicAddress => AddedAddr);
     
-DataAB  <=    AddedAddr when AddrOpSel(0) = '1' else
+DataAB  <=    AddedAddr when AddrOpSel(1) = '1' else
               InputAddress; 
               
 NewAddr <=    AddedAddr;              
