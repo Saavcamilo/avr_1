@@ -73,7 +73,7 @@ component DataMemoryAccessUnit is
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
-        AddrOpSel :     in   std_logic_vector(1 downto 0);
+        AddrOpSel :     in   std_logic_vector(2 downto 0);
         DataDB    :     inout   std_logic_vector(7 downto 0);
         
         DataAB    :     out   std_logic_vector(15 downto 0);
@@ -98,7 +98,7 @@ Component ControlUnit is
         RegisterBSel     : out    std_logic_vector(4 downto 0);
         RegisterXYZEn    : out    std_logic;
         RegisterXYZSel   : out    std_logic_vector(1 downto 0);
-        DMAOp            : out    std_logic_vector(1 downto 0);
+        DMAOp            : out    std_logic_vector(2 downto 0);
         OpSel            : out    std_logic_vector(9 downto 0);
         LDRImmed         : out    std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
@@ -129,6 +129,22 @@ Component  RegisterArray  is
         RegXYZOut:  out std_logic_vector(15 downto 0)
     );
 end  Component;
+
+Component ALU is
+    port(
+        OperandSel:  in  std_logic_vector(9 downto 0);      -- Operand select
+        Flag      :  in  std_logic_vector(7 downto 0);      -- Flag inputs  
+        FlagMask  :  in  std_logic_vector(7 downto 0);      -- Flag Mask
+        OperandA  :  in  std_logic_vector(7 downto 0);      -- first operand
+        OperandB  :  in  std_logic_vector(7 downto 0);      -- second operand
+        Immediate :  in  std_logic_vector(7 downto 0);
+
+        Output    :  out std_logic_vector(7 downto 0);      -- ALU result
+        StatReg   :  out std_logic_vector(7 downto 0)       -- status register
+    );
+end Component;
+
+
     signal Clock: std_logic;
     signal OperandSel : std_logic_vector(9 downto 0);
     signal Flag      :  std_logic_vector(7 downto 0);      -- Flag inputs    
@@ -148,7 +164,7 @@ end  Component;
     signal Read_Mem       : std_logic;
     signal Write_Mem      : std_logic;
 	 signal Data_AB1  :  std_logic_vector(15 downto 0);
-    signal DMAOp     :  std_logic_vector(1 downto 0);
+    signal DMAOp     :  std_logic_vector(2 downto 0);
     signal PushPop   :  std_logic_vector(1 downto 0);
 
     signal RegVal    :  std_logic_vector(7 downto 0);
@@ -157,6 +173,8 @@ end  Component;
     signal ResultXYZ :  std_logic_vector(15 downto 0);
     signal InputXYZ  :  std_logic_vector(15 downto 0);
     signal WriteXYZ  :  std_logic;
+	
+	signal ALUoutput :  std_logic_vector(7 downto 0);
 
 
     --period of clock,bit for indicating end of file.
@@ -173,6 +191,8 @@ end  Component;
 begin
 	DataAB <= Data_AB1;
 	DataRd <= DataRd1;
+	RegVal <= ALUoutput;
+	
     -- Unit Under Test port map
     UUT : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
@@ -198,6 +218,12 @@ begin
         Input => RegVal, Immediate => Constants, RegXYZEn => RegisterXYZEn, 
         RegXYZSel => RegisterXYZSel, InputXYZ => InputXYZ, WriteXYZ => RegisterXYZEn,
         RegAOut => ResultA, RegBOut => ResultB, RegXYZOut => ResultXYZ
+    );
+	
+	ALU_Unit : ALU        port map  (
+				OperandSel => OperandSel, Flag => Flag, FlagMask => FlagMask,
+				OperandA => ResultA, OperandB => ResultB, Immediate => Constants,
+                Output => ALUoutput, StatReg => Flag
     );
 
     CLK_Drive: process
@@ -236,9 +262,25 @@ begin
     -- now generate the stimulus and test it
     process
     begin  -- of stimulus process
+	
+	wait for 100 ns;
 
 
     -- fill registers with values
+	
+	-- put 0 in r0
+	--FetchedInstruction <= "1110000011110000";
+	--wait for 20 ns;
+	--FetchedInstruction <= "0010111000001111";
+	--wait for 20 ns;
+	
+	-- put 1 in r1
+	--FetchedInstruction <= "1110000011110001";
+	--wait for 20 ns;
+	--FetchedInstruction <= "0010111000011111";
+	--wait for 20 ns;
+	
+	
 
     -- put 0 in r0
     RegVal <= "00000000";
@@ -423,71 +465,79 @@ begin
     FetchedInstruction <= "0001010000000001";
     wait for 15 ns;
 
-    -- put 113 in r26
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010110100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+	
+	-- test LDI instruction by loading registers 26-31 with immediates
+	
+    -- put 1 in r26
+    FetchedInstruction <= "1110000010100001";
+    wait for 20 ns;
 
-    -- put 119 in r27
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010110110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    -- put 0 in r27
+    
+    FetchedInstruction <= "1110000010110000";
+    wait for 20 ns;
 
-    -- put 44 in r28
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010111000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    -- put 0 in r28
+    FetchedInstruction <= "1110000011000000";
+    wait for 20 ns;
+	
+    -- put 0 in r29
+    
+    FetchedInstruction <= "1110000011010000";
+    wait for 20 ns;
 
-    -- put 45 in r29
-    RegVal <= "00000001";
-    FetchedInstruction <= "1001010111010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    -- put 0 in r30
+    FetchedInstruction <= "1110000011100000";
+    wait for 20 ns;
 
-    -- put 111 in r30
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010111100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
-
-    -- put 112 in r31
+    -- put 128 in r31
     RegVal <= "10000000";
-    FetchedInstruction <= "1001010111110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110100011110000";
+    wait for 20 ns;
+	 
+	-- test MOV instruction
+	
+	-- put 1 in r29 (by moving r26 into r29)
+	FetchedInstruction <= "0010111111011010";
+	
+	wait for 20 ns;
+	
+	-- put 0 in r26 (by moving r27 into r26)
+	FetchedInstruction <= "0010111110101011";
+	
+	wait for 20 ns;
+	
+	 
 
 
-    for i in 0 to 29 loop
+    for i in 0 to 79 loop
 	 
 		read_file <= '1';
 		wait for 10 ns;
 		FetchedInstruction <= dataread(31 downto 16);
 		read_file <= '0';
 		wait for 15 ns;
-		assert (std_match(Data_AB1, dataread(15 downto 0))) report "test " & INTEGER'IMAGE(i); -- check load instructions
+		assert (std_match(Data_AB1, dataread(15 downto 0))) report "test " & INTEGER'IMAGE(i); -- check load/store instructions
 		wait for 5 ns;
 		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
 		
     end loop;
+	
+	
 	 
 	 
 	 wait for 1000 ns;
 
 
     -- meminput.txt comments:
-    --lines 1-30 test instruction LD (LDX, LDXI, LDXD, LDYI, LDYD, LDZI, LDZD)
-    --lines 31-38 test instructions LDD (LDDY, LDDZ)
-        --lines 31-34 test LDDY
-        --lines 25-38 test LDDZ
+    --lines 1-32 test instruction LD (LDX, LDXI, LDXD, LDYI, LDYD, LDZI, LDZD)
+    --lines 33-40 test instructions LDD (LDDY, LDDZ)
+        --lines 33-36 test LDDY
+        --lines 37-40 test LDDZ
+	 --lines 41-72 test instructions ST (STX, STXI, STXD, STYI, STYD, STZI, STZD)
+	 --lines 73-80 test instructions STD (STDY, STDZ)
+		  --lines 73-76 test STDY
+		  --lines 77-80 test STDZ
 
 
 

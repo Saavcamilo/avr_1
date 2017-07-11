@@ -26,7 +26,7 @@ use opcodes.all;
 --                              - as input for certain instructions. 
 --
 --  Outputs:
---      Result                  - Result of the operation from the ALU operation
+--      Output                  - Result of the operation from the ALU operation
 --      StatReg                 - New flag values from the operation
 --
 --  Revision History:
