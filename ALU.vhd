@@ -128,7 +128,7 @@ AdderBlock_1: AdderBlock PORT MAP(
 Result <=       FBlockOutput     when OperandSel(9 downto 8) = "01" else
 				ShiftBlockOutput when OperandSel(9 downto 8) = "10" else
 				AdderBlockOutput when OperandSel(9 downto 8) = "11" else
-				"XXXXXXXX";
+				OperandA;
 				
 -- Mux flags that change depending on the block                 
 CalcFlag(0) <= ShiftCarry when OperandSel(8) = '0' else

@@ -191,7 +191,7 @@ end Component;
 begin
 	DataAB <= Data_AB1;
 	DataRd <= DataRd1;
-	RegVal <= ALUoutput;
+	--RegVal <= ALUoutput;
 	
     -- Unit Under Test port map
     UUT : DataMemoryAccessUnit   port map  (
@@ -215,7 +215,7 @@ begin
     Registers : RegisterArray       port map  (
         clock => clock, Enable => RegisterEn, UseImmed => LDRImmed, 
         Selects => RegisterSel, RegASel => RegisterASel, RegBSel => RegisterBSel, 
-        Input => RegVal, Immediate => Constants, RegXYZEn => RegisterXYZEn, 
+        Input => ALUoutput, Immediate => Constants, RegXYZEn => RegisterXYZEn, 
         RegXYZSel => RegisterXYZSel, InputXYZ => InputXYZ, WriteXYZ => RegisterXYZEn,
         RegAOut => ResultA, RegBOut => ResultB, RegXYZOut => ResultXYZ
     );
@@ -269,16 +269,16 @@ begin
     -- fill registers with values
 	
 	-- put 0 in r0
-	--FetchedInstruction <= "1110000011110000";
-	--wait for 20 ns;
-	--FetchedInstruction <= "0010111000001111";
-	--wait for 20 ns;
+	FetchedInstruction <= "1110000011110000";
+	wait for 20 ns;
+	FetchedInstruction <= "0010111000001111";
+	wait for 20 ns;
 	
 	-- put 1 in r1
-	--FetchedInstruction <= "1110000011110001";
-	--wait for 20 ns;
-	--FetchedInstruction <= "0010111000011111";
-	--wait for 20 ns;
+	FetchedInstruction <= "1110000011110001";
+	wait for 20 ns;
+	FetchedInstruction <= "0010111000011111";
+	wait for 20 ns;
 	
 	
 

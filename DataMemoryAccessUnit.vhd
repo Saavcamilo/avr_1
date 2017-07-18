@@ -69,7 +69,7 @@ AddrAdder: AddressAdder PORT MAP(
     LogicAddress => AddedAddr);
     
 DataAB  <=    AddedAddr when AddrOpSel(2) = '1' else
-			  AddedAddr when AddrOpSel(1) = '1' else
+			  ProgDB when AddrOpSel(1) = '1' else
 			  AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
               
@@ -109,14 +109,21 @@ NewAddr <=    AddedAddr;
                     DataWr <= '1';
 						  DataRd <= '1';
             when CLK2 =>
-                if (Clock = '0') then 
+                if ((Clock = '0') and (AddrOpSel(1) = '0')) then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
 				    else
                     DataWr <= '1';
 						  DataRd <= '1';					 
                 end if;
-				when others => 
+				when CLK3 =>
+                if (Clock = '0') then 
+                    DataWr <= WrIn;
+                    DataRd <= RdIn;
+				    else
+                    DataWr <= '1';
+						  DataRd <= '1';					 
+                end if;				
         end case;
     end process outputs;
 
