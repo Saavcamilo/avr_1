@@ -282,188 +282,154 @@ begin
 	
 	
 
-    -- put 0 in r0
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010000000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
-
-    -- put 1 in r1
-    RegVal <= "00000001";
-    FetchedInstruction <= "1001010000010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
-
     -- put 2 in r2
-    RegVal <= "00000010";
-    FetchedInstruction <= "1001010000100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110010";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111000101111";
+    wait for 20 ns;
 
     -- put 3 in r3
-    RegVal <= "00000011";
-    FetchedInstruction <= "1001010000110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110011";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111000111111";
+    wait for 20 ns;
 
-
-     -- put 4 in r4
-    RegVal <= "00000100";
-    FetchedInstruction <= "1001010001000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    -- put 4 in r4
+    FetchedInstruction <= "1110000011110100";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111001001111";
+    wait for 20 ns;
 
     -- put 8 in r5
-    RegVal <= "00001000";
-    FetchedInstruction <= "1001010001010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011111000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111001011111";
+    wait for 20 ns;
 
     -- put 10 in r6
-    RegVal <= "00001010";
-    FetchedInstruction <= "1001010001100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011111010";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111001101111";
+    wait for 20 ns;
 
     -- put 0 in r7
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010001110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
-     
-     -- put 15 in r8
-    RegVal <= "00001111";
-    FetchedInstruction <= "1001010010000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111001111111";
+    wait for 20 ns;
+
+    -- put 15 in r8
+    FetchedInstruction <= "1110000011111111";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111010001111";
+    wait for 20 ns;
+
 
     -- put 16 in r9
-    RegVal <= "00010000";
-    FetchedInstruction <= "1001010010010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000111110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111010011111";
+    wait for 20 ns;
 
     -- put 32 in r10
-    RegVal <= "00100000";
-    FetchedInstruction <= "1001010010100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110001011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111010101111";
+    wait for 20 ns;
 
     -- put 64 in r11
-    RegVal <= "01000000";
-    FetchedInstruction <= "1001010010110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110010011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111010111111";
+    wait for 20 ns;
 
     -- put 128 in r12
-    RegVal <= "10000000";
-    FetchedInstruction <= "1001010011000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110100011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111011001111";
+    wait for 20 ns;
 
     -- put 255 in r13
-    RegVal <= "11111111";
-    FetchedInstruction <= "1001010011010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110111111111111";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111011011111";
+    wait for 20 ns;
 
     -- put 0 in r14
-    RegVal <= "00000000";
-    FetchedInstruction <= "1001010011100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111011101111";
+    wait for 20 ns;
 
     -- put 1 in r15
-    RegVal <= "00000001";
-    FetchedInstruction <= "1001010011110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110001";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111011111111";
+    wait for 20 ns;
 
     -- put 2 in r16
-    RegVal <= "00000010";
-    FetchedInstruction <= "1001010100000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110010";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111100001111";
+    wait for 20 ns;
 
     -- put 3 in r17
-    RegVal <= "00000011";
-    FetchedInstruction <= "1001010100010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110011";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111100011111";
+    wait for 20 ns;
 
     -- put 4 in r18
-    RegVal <= "00000100";
-    FetchedInstruction <= "1001010100100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110000011110100";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111100101111";
+    wait for 20 ns;
+
+
+
+
 
     -- put 170 in r19
-    RegVal <= "10101010";
-    FetchedInstruction <= "1001010100110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110101011111010";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111100111111";
+    wait for 20 ns;
 
     -- put 255 in r20
-    RegVal <= "11111111";
-    FetchedInstruction <= "1001010101000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110111111111111";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111101001111";
+    wait for 20 ns;
 
     -- put 240 in r21
-    RegVal <= "11110000";
-    FetchedInstruction <= "1001010101010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110111111110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111101011111";
+    wait for 20 ns;
 
-    -- put 160 in r22
-    RegVal <= "10100000";
-    FetchedInstruction <= "1001010101100101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    -- put 255 in r22
+    FetchedInstruction <= "1110101011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111101101111";
+    wait for 20 ns;
 
-    -- put 128 in r23
-    RegVal <= "10000000";
-    FetchedInstruction <= "1001010101110101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    -- put 255 in r23
+    FetchedInstruction <= "1110100011110000";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111101111111";
+    wait for 20 ns;
 
     -- put 51 in r24
-    RegVal <= "00110011";
-    FetchedInstruction <= "1001010110000101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110001111110011";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111110001111";
+    wait for 20 ns;
 
     -- put 52 in r25
-    RegVal <= "00110100";
-    FetchedInstruction <= "1001010110010101";
-    wait for 25 ns;
-    FetchedInstruction <= "0001010000000001";
-    wait for 15 ns;
+    FetchedInstruction <= "1110001111110100";
+    wait for 20 ns;
+    FetchedInstruction <= "0010111110011111";
+    wait for 20 ns;
 
 	
 	-- test LDI instruction by loading registers 26-31 with immediates
@@ -522,11 +488,9 @@ begin
 		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
 		
     end loop;
+
+    wait for 20 ns;
 	
-	
-	 
-	 
-	 wait for 1000 ns;
 
 
     -- meminput.txt comments:
@@ -538,6 +502,95 @@ begin
 	 --lines 73-80 test instructions STD (STDY, STDZ)
 		  --lines 73-76 test STDY
 		  --lines 77-80 test STDZ
+
+
+
+
+
+
+
+
+
+
+    -- test LDS
+
+    FetchedInstruction <= "1001000000000000";
+    wait for 10ns;
+    ProgDB <= "0000000000000000";
+    wait for 10ns;
+    ProgDB <= "UUUUUUUUUUUUUUUU";
+    wait for 5 ns;
+    assert (std_match(Data_AB1, "0000000000000000")) report "test LDS 1";
+    wait for 5 ns;
+
+
+    FetchedInstruction <= "1001000111110000";
+    wait for 10ns;
+    ProgDB <= "1111111111111111";
+    wait for 10ns;
+    ProgDB <= "UUUUUUUUUUUUUUUU";
+    wait for 5 ns;
+    assert (std_match(Data_AB1, "1111111111111111")) report "test LDS 2";
+    wait for 5 ns;
+
+
+    FetchedInstruction <= "1001000101010000";
+    wait for 10ns;
+    ProgDB <= "1010101010101010";
+    wait for 10ns;
+    ProgDB <= "UUUUUUUUUUUUUUUU";
+    wait for 5 ns;
+    assert (std_match(Data_AB1, "1010101010101010")) report "test LDS 3";
+    wait for 5 ns;
+
+
+    wait for 20 ns;
+
+
+
+    -- test STS
+
+    FetchedInstruction <= "1001001000000000";
+    wait for 10ns;
+    ProgDB <= "0000000000000000";
+    wait for 10ns;
+    ProgDB <= "UUUUUUUUUUUUUUUU";
+    wait for 5 ns;
+    assert (std_match(Data_AB1, "0000000000000000")) report "test STS 1";
+    wait for 5 ns;
+
+
+    FetchedInstruction <= "1001001111110000";
+    wait for 10ns;
+    ProgDB <= "1111111111111111";
+    wait for 10ns;
+    ProgDB <= "UUUUUUUUUUUUUUUU";
+    wait for 5 ns;
+    assert (std_match(Data_AB1, "1111111111111111")) report "test STS 2";
+    wait for 5 ns;
+
+
+    FetchedInstruction <= "1001001101010000";
+    wait for 10ns;
+    ProgDB <= "1010101010101010";
+    wait for 10ns;
+    ProgDB <= "UUUUUUUUUUUUUUUU";
+    wait for 5 ns;
+    assert (std_match(Data_AB1, "1010101010101010")) report "test STS 3";
+    wait for 5 ns;
+
+
+
+
+
+
+
+
+
+
+
+
+    wait for 3000 ns;
 
 
 
