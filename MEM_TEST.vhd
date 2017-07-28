@@ -173,7 +173,7 @@ end Component;
     signal ResultXYZ :  std_logic_vector(15 downto 0);
     signal InputXYZ  :  std_logic_vector(15 downto 0);
     signal WriteXYZ  :  std_logic;
-	
+	 signal ProgDBs    :  std_logic_vector(15 downto 0);
 	signal ALUoutput :  std_logic_vector(7 downto 0);
 
 
@@ -196,7 +196,7 @@ begin
     -- Unit Under Test port map
     UUT : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
-        Offset => Constants(5 downto 0), ProgDB => ProgDB, AddrOpSel => DMAOp,
+        Offset => Constants(5 downto 0), ProgDB => ProgDBs, AddrOpSel => DMAOp,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd1);
 
@@ -516,9 +516,9 @@ begin
 
     FetchedInstruction <= "1001000000000000";
     wait for 10ns;
-    ProgDB <= "0000000000000000";
+    ProgDBs <= "0000000000000000";
     wait for 10ns;
-    ProgDB <= "UUUUUUUUUUUUUUUU";
+    ProgDBs <= "UUUUUUUUUUUUUUUU";
     wait for 5 ns;
     assert (std_match(Data_AB1, "0000000000000000")) report "test LDS 1";
     wait for 5 ns;
@@ -526,9 +526,9 @@ begin
 
     FetchedInstruction <= "1001000111110000";
     wait for 10ns;
-    ProgDB <= "1111111111111111";
+    ProgDBs <= "1111111111111111";
     wait for 10ns;
-    ProgDB <= "UUUUUUUUUUUUUUUU";
+    ProgDBs <= "UUUUUUUUUUUUUUUU";
     wait for 5 ns;
     assert (std_match(Data_AB1, "1111111111111111")) report "test LDS 2";
     wait for 5 ns;
@@ -536,15 +536,13 @@ begin
 
     FetchedInstruction <= "1001000101010000";
     wait for 10ns;
-    ProgDB <= "1010101010101010";
+    ProgDBs <= "1010101010101010";
     wait for 10ns;
-    ProgDB <= "UUUUUUUUUUUUUUUU";
+    ProgDBs <= "UUUUUUUUUUUUUUUU";
     wait for 5 ns;
     assert (std_match(Data_AB1, "1010101010101010")) report "test LDS 3";
     wait for 5 ns;
 
-
-    wait for 20 ns;
 
 
 
@@ -552,9 +550,9 @@ begin
 
     FetchedInstruction <= "1001001000000000";
     wait for 10ns;
-    ProgDB <= "0000000000000000";
+    ProgDBs <= "0000000000000000";
     wait for 10ns;
-    ProgDB <= "UUUUUUUUUUUUUUUU";
+    ProgDBs <= "UUUUUUUUUUUUUUUU";
     wait for 5 ns;
     assert (std_match(Data_AB1, "0000000000000000")) report "test STS 1";
     wait for 5 ns;
@@ -562,9 +560,9 @@ begin
 
     FetchedInstruction <= "1001001111110000";
     wait for 10ns;
-    ProgDB <= "1111111111111111";
+    ProgDBs <= "1111111111111111";
     wait for 10ns;
-    ProgDB <= "UUUUUUUUUUUUUUUU";
+    ProgDBs <= "UUUUUUUUUUUUUUUU";
     wait for 5 ns;
     assert (std_match(Data_AB1, "1111111111111111")) report "test STS 2";
     wait for 5 ns;
@@ -572,9 +570,9 @@ begin
 
     FetchedInstruction <= "1001001101010000";
     wait for 10ns;
-    ProgDB <= "1010101010101010";
+    ProgDBs <= "1010101010101010";
     wait for 10ns;
-    ProgDB <= "UUUUUUUUUUUUUUUU";
+    ProgDBs <= "UUUUUUUUUUUUUUUU";
     wait for 5 ns;
     assert (std_match(Data_AB1, "1010101010101010")) report "test STS 3";
     wait for 5 ns;

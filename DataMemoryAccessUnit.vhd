@@ -55,21 +55,21 @@ Component AddressAdder is
     );
 end Component;
     type state is (
-        Idle,
         CLK1,
         CLK2,
         CLK3
     );     
     signal CurrentState, NextState: state;
+	 signal ConstAddr: std_logic_vector(15 downto 0);
     signal AddedAddr: std_logic_vector(15 downto 0);
 begin
 
 AddrAdder: AddressAdder PORT MAP(
     Subtract => AddrOpSel(0), A => InputAddress, B => Offset, 
     LogicAddress => AddedAddr);
-    
+
 DataAB  <=    AddedAddr when AddrOpSel(2) = '1' else
-			  ProgDB when AddrOpSel(1) = '1' else
+			  ConstAddr when AddrOpSel(1) = '1' else
 			  AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
               
@@ -78,37 +78,32 @@ NewAddr <=    AddedAddr;
     transition: process(CurrentState, WrIn, RdIn, Clock)
     begin
         case CurrentState is
-            when Idle =>
-                if (WrIn = '0' or RdIn = '0') then
-                    NextState <= CLK1;
-                else
-                    NextState <= Idle;
-                end if;
             when CLK1 =>
-                NextState <= Clk2;
+                if (WrIn = '0' or RdIn = '0') then
+                    NextState <= CLK2;
+                else
+                    NextState <= CLK1;
+                end if;
             when CLK2 =>
                 if (AddrOpSel(1) = '1') then
                     NextState <= CLK3;
-					 elsif (WrIn = '0' or RdIn = '0') then
-                    NextState <= CLK1; 
                 else
-                    NextState <= Idle; 
+                    NextState <= CLK1; 
                 end if;
 			   when others =>
-				    NextState <= Idle;
+				    NextState <= CLK1;
         end case;
     end process transition;
 
     outputs: process (Clock, CurrentState)
     begin
         case CurrentState is
-            when Idle =>
-                    DataWr <= '1';
-						  DataRd <= '1';
             when CLK1 =>
+				ConstAddr <= ProgDB;
                     DataWr <= '1';
 						  DataRd <= '1';
             when CLK2 =>
+				    ConstAddr <= ConstAddr;
                 if ((Clock = '0') and (AddrOpSel(1) = '0')) then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
@@ -117,19 +112,21 @@ NewAddr <=    AddedAddr;
 						  DataRd <= '1';					 
                 end if;
 				when CLK3 =>
+					 ConstAddr <= ConstAddr;
                 if (Clock = '0') then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
 				    else
                     DataWr <= '1';
 						  DataRd <= '1';					 
-                end if;				
+                end if;		
+					 
         end case;
     end process outputs;
 
     storage: process (Clock)
     begin
-        if (falling_edge(Clock)) then
+        if (rising_edge(Clock)) then
             CurrentState <= NextState;
         end if;
     end process storage;
