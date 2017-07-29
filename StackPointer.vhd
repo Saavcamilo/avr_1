@@ -21,6 +21,8 @@ use ieee.numeric_std.all;
 --
 --  Revision History:
 --     5 Feb 17  Camilo Saavedra     Initial revision.
+--     28 July 17 Anant Desai        Fixed logical errors in assiging NextPointer
+--     28 July 17 Anant Desai        fixed Push/Pop functionality
 --
 ----------------------------------------------------------------------------
 entity StackPointer is                  --entity declaration  
@@ -28,7 +30,8 @@ entity StackPointer is                  --entity declaration
         Clock          :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
-		StackPointer   :     inout  std_logic_vector(7 downto 0)
+		StackPointer   :     out  std_logic_vector(7 downto 0);
+        SPout          :     out  std_logic_vector(7 downto 0);
         
     );
 end StackPointer; 
@@ -36,7 +39,6 @@ end StackPointer;
 architecture ControlFlow of StackPointer is
     signal CurrPointer : std_logic_vector(7 downto 0);
     signal NextPointer : std_logic_vector(7 downto 0);
-	 signal OpEnabled   : std_logic;
     -- 8 flags stored in an 8bit register 
    
     Component AdderBlock is
@@ -51,18 +53,33 @@ architecture ControlFlow of StackPointer is
     
     end component; 
 begin --8 bit register will simply store the value of flags.
-    CurrPointer <= StackPointer;
-	 OpEnabled <= StackOp(0) xor StackOp(1);
+
     Stack_Adder: AdderBlock PORT MAP (
-        Cin => '0', Subtract => StackOp(1), A => CurrPointer, B => "00000001",
-        Sum => NextPointer, Cout => '0'
+        Cin => '0', Subtract => StackOp(1), A => CurrPointer, 
+        B => "00000001", Sum => NextPointer, Cout => '0'
     );
+
+
     process(Clock, Reset)
     begin
         if Reset = '0' then
             StackPointer <= "11111111";
-        elsif rising_edge(Clock) then --Rising edge and enable 
-            StackPointer <= NextPointer;                               -- signal is asserted
+            CurrPointer <= "11111111";
+            SPout <= "11111111"
+        elsif rising_edge(Clock) and StackOp(0) = '1' then --Rising edge and enable 
+            StackPointer <= NextPointer;             -- signal is asserted
+            if StackOp(1) = '0' then    -- when popping
+                SPout <= NextPointer;
+            else                        -- when pushing
+                SPout <= CurrPointer;
+        elseif rising_edge(Clock) and StackOp(0) = '0' then
+            CurrPointer <= StackPointer;
         end if;
     end process;
+
+
+
+
+
+
 end architecture;

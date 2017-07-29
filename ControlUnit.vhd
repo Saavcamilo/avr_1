@@ -1012,9 +1012,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '1';	-- write_Mem to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
-		 		PushPop <= "01";
+		 		PushPop <= "00";
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+		 	ELSE -- set PushPop signal to enabled
 		 		RegisterEn <= '1';	-- write_Mem to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
 		 		
@@ -1025,21 +1025,21 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		  	END IF;
 		 End if;
 		 If (std_match(InstructionOpCode, OpPUSH)) then 
-		 	if(cycCounter = "00") then -- for cycles 1
+		 	IF(cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- write_Mem to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		
-		 		PushPop <= "11";
+		 		PushPop <= "10";
 		 		
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	else -- for the second cycle, keep the signals as they are
+		 	ELSE -- set PushPop signal to enabled
 		 		RegisterEn <= '0';	-- write_Mem to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		
 		 		PushPop <= "11";
 
 		 		FlagMask <= "00000000"; -- don't change any flags
-		  	end if;
+		  	END IF;
 		end if;
     end process;
 	 
