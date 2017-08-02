@@ -150,8 +150,8 @@ Component StackPointer is
         Clock          :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
-        StackPointer   :     out  std_logic_vector(7 downto 0)
-        SPout          :     out  std_logic_vector(7 downto 0);
+        StackPointer   :     out  std_logic_vector(7 downto 0);
+        SPout          :     out  std_logic_vector(7 downto 0)
     );
 end Component;
 
@@ -241,7 +241,7 @@ begin
                 Output => ALUoutput, StatReg => Flag
     );
 
-    SP : StackPointer     port map  (
+    Stack : StackPointer     port map  (
                 Clock => clock, StackOp => PushPop, 
                 Reset => spRST, StackPointer => SP, SPout => SPoutput
     );
@@ -603,41 +603,41 @@ begin
 
     -- test push/pop
 
-    - reset stack pointer
+    -- reset stack pointer
     spRST <= '0';       -- reset stack pointer to "11111111"
     wait for 10 ns;
 
     -- test push
     FetchedInstruction <= "1001001000001111";
     wait for 15 ns;
-    assert (std_match(SPoutput, "11111111")) report "test PUSH 1"
+    assert (std_match(SPoutput, "11111111")) report "test PUSH 1";
     wait for 5 ns;
 
     FetchedInstruction <= "1001001000001111";
     wait for 15 ns;
-    assert (std_match(SPoutput, "11111110")) report "test PUSH 2"
+    assert (std_match(SPoutput, "11111110")) report "test PUSH 2";
     wait for 5 ns;
 
     FetchedInstruction <= "1001001000001111";
     wait for 15 ns;
-    assert (std_match(SPoutput, "11111101")) report "test PUSH 3"
+    assert (std_match(SPoutput, "11111101")) report "test PUSH 3";
     wait for 5 ns;
 
 
     -- test pop
     FetchedInstruction <= "1001000000001111";
     wait for 15 ns;
-    assert (std_match(SPoutput, "11111101")) report "test POP 1"
+    assert (std_match(SPoutput, "11111101")) report "test POP 1";
     wait for 5 ns;
 
     FetchedInstruction <= "1001000000001111";
     wait for 15 ns;
-    assert (std_match(SPoutput, "11111110")) report "test POP 2"
+    assert (std_match(SPoutput, "11111110")) report "test POP 2";
     wait for 5 ns;
 
     FetchedInstruction <= "1001000000001111";
     wait for 15 ns;
-    assert (std_match(SPoutput, "11111111")) report "test POP 3"
+    assert (std_match(SPoutput, "11111111")) report "test POP 3";
     wait for 5 ns;
 
 

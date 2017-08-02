@@ -72,7 +72,7 @@ begin --8 bit register will simply store the value of flags.
                 SPout <= NextPointer;
             else                        -- when pushing
                 SPout <= CurrPointer;
-        elseif rising_edge(Clock) and StackOp(0) = '0' then
+        elsif rising_edge(Clock) and StackOp(0) = '0' then
             CurrPointer <= StackPointer;
         end if;
     end process;
