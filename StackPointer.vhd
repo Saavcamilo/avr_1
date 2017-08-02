@@ -30,15 +30,16 @@ entity StackPointer is                  --entity declaration
         Clock          :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
-		StackPointer   :     out  std_logic_vector(7 downto 0);
-        SPout          :     out  std_logic_vector(7 downto 0);
+        SPout          :     out  std_logic_vector(7 downto 0)
         
     );
 end StackPointer; 
 ---------------------------------------------
 architecture ControlFlow of StackPointer is
+	 signal StackPointer: std_logic_vector(7 downto 0);
     signal CurrPointer : std_logic_vector(7 downto 0);
     signal NextPointer : std_logic_vector(7 downto 0);
+	 signal carry_out   : std_logic;
     -- 8 flags stored in an 8bit register 
    
     Component AdderBlock is
@@ -56,7 +57,7 @@ begin --8 bit register will simply store the value of flags.
 
     Stack_Adder: AdderBlock PORT MAP (
         Cin => '0', Subtract => StackOp(1), A => CurrPointer, 
-        B => "00000001", Sum => NextPointer, Cout => '0'
+        B => "00000001", Sum => NextPointer, Cout => carry_out
     );
 
 
@@ -65,13 +66,14 @@ begin --8 bit register will simply store the value of flags.
         if Reset = '0' then
             StackPointer <= "11111111";
             CurrPointer <= "11111111";
-            SPout <= "11111111"
+            SPout <= "11111111";
         elsif rising_edge(Clock) and StackOp(0) = '1' then --Rising edge and enable 
             StackPointer <= NextPointer;             -- signal is asserted
             if StackOp(1) = '0' then    -- when popping
                 SPout <= NextPointer;
             else                        -- when pushing
                 SPout <= CurrPointer;
+			   end if;
         elsif rising_edge(Clock) and StackOp(0) = '0' then
             CurrPointer <= StackPointer;
         end if;

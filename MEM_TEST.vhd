@@ -150,7 +150,6 @@ Component StackPointer is
         Clock          :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
-        StackPointer   :     out  std_logic_vector(7 downto 0);
         SPout          :     out  std_logic_vector(7 downto 0)
     );
 end Component;
@@ -199,7 +198,6 @@ end Component;
     signal   LDRImmed : std_logic;
 
     signal   spRST : std_logic;
-    signal   SP : std_logic_vector(7 downto 0);
     signal   SPoutput : std_logic_vector(7 downto 0);
 
 
@@ -243,7 +241,7 @@ begin
 
     Stack : StackPointer     port map  (
                 Clock => clock, StackOp => PushPop, 
-                Reset => spRST, StackPointer => SP, SPout => SPoutput
+                Reset => spRST, SPout => SPoutput
     );
 
 
@@ -606,6 +604,8 @@ begin
     -- reset stack pointer
     spRST <= '0';       -- reset stack pointer to "11111111"
     wait for 10 ns;
+	 spRST <= '1'; 			-- make sure reset is not still active
+	 wait for 10 ns;
 
     -- test push
     FetchedInstruction <= "1001001000001111";
