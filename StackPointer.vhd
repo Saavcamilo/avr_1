@@ -78,10 +78,4 @@ begin --8 bit register will simply store the value of flags.
             CurrPointer <= StackPointer;
         end if;
     end process;
-
-
-
-
-
-
 end architecture;

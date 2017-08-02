@@ -281,9 +281,9 @@ begin
     -- now generate the stimulus and test it
     process
     begin  -- of stimulus process
-	
+	spRST <= '0';
 	wait for 100 ns;
-
+   spRST <= '1';
 
     -- fill registers with values
 	
