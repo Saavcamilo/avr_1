@@ -30,17 +30,17 @@ entity StackPointer is                  --entity declaration
         Clock          :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
-		StackPointer   :     out  std_logic_vector(7 downto 0);
-        SPout          :     out  std_logic_vector(7 downto 0);
+		  StackPointer   :     out  std_logic_vector(7 downto 0);
+        SPout          :     out  std_logic_vector(7 downto 0)
         
     );
 end StackPointer; 
 ---------------------------------------------
 architecture ControlFlow of StackPointer is
     signal CurrPointer : std_logic_vector(7 downto 0);
+	 signal Cout: std_logic;
     signal NextPointer : std_logic_vector(7 downto 0);
     -- 8 flags stored in an 8bit register 
-   
     Component AdderBlock is
     port(
         Cin  :     in  std_logic;
@@ -53,10 +53,10 @@ architecture ControlFlow of StackPointer is
     
     end component; 
 begin --8 bit register will simply store the value of flags.
-
+	 
     Stack_Adder: AdderBlock PORT MAP (
-        Cin => '0', Subtract => StackOp(1), A => CurrPointer, 
-        B => "00000001", Sum => NextPointer, Cout => '0'
+        Cin => '1', Subtract => StackOp(1), A => CurrPointer, 
+        B => "00000001", Sum => NextPointer, Cout => Cout
     );
 
 
@@ -65,15 +65,15 @@ begin --8 bit register will simply store the value of flags.
         if Reset = '0' then
             StackPointer <= "11111111";
             CurrPointer <= "11111111";
-            SPout <= "11111111"
         elsif rising_edge(Clock) and StackOp(0) = '1' then --Rising edge and enable 
             StackPointer <= NextPointer;             -- signal is asserted
             if StackOp(1) = '0' then    -- when popping
                 SPout <= NextPointer;
             else                        -- when pushing
                 SPout <= CurrPointer;
+			end if;
         elsif rising_edge(Clock) and StackOp(0) = '0' then
-            CurrPointer <= StackPointer;
+            CurrPointer <= NextPointer;
         end if;
     end process;
 

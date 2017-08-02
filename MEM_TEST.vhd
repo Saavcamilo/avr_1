@@ -150,7 +150,7 @@ Component StackPointer is
         Clock          :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
-        StackPointer   :     out  std_logic_vector(7 downto 0);
+        StackPointer   :     inout  std_logic_vector(7 downto 0);
         SPout          :     out  std_logic_vector(7 downto 0)
     );
 end Component;
@@ -283,9 +283,9 @@ begin
     -- now generate the stimulus and test it
     process
     begin  -- of stimulus process
-	
+	spRST <= '0';
 	wait for 100 ns;
-
+   spRST <= '1';
 
     -- fill registers with values
 	
