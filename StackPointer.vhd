@@ -6,18 +6,18 @@ use ieee.numeric_std.all;
 --
 --  Stack Pointer Register (SP)
 --
---  This is an implementation of the status register for an AVR CPU. It 
---  holds the current status of the system by storing the flags. The 
---  implementation is an 8 bit register that updates the flags.
+--  This is an implementation of the stack pointer for an AVR CPU. It 
+--  holds the current address of the stack pointer and controls whether
+--  the stack pointer should be incremented or decremented based on 
+--  the StackOp input, which is driven by a pushPop signal.
 --
 --  Inputs:
 --      Clock            - the system clock
 --      StackOp          - encodes whether we want to push or pop
 --      Reset            - sets the pointer to FFFFFFFF
 --  Outputs:
---      FlagsOut         - The status of the system is stored in 
---                         the flags from the status register. Sent 
---                         to other blocks in the system.
+--      SPout            - contains the address of the stack pointer after 
+--                         the push or pop operation
 --
 --  Revision History:
 --     5 Feb 17  Camilo Saavedra     Initial revision.
@@ -53,8 +53,10 @@ architecture ControlFlow of StackPointer is
     );
     
     end component; 
-begin --8 bit register will simply store the value of flags.
+begin --
 
+    -- adder increments or decrements the stack pointer depending on whether
+    -- we are pushing or popping (StackOp(1))
     Stack_Adder: AdderBlock PORT MAP (
         Cin => '0', Subtract => StackOp(1), A => CurrPointer, 
         B => "00000001", Sum => NextPointer, Cout => carry_out
@@ -63,7 +65,7 @@ begin --8 bit register will simply store the value of flags.
 
     process(Clock, Reset)
     begin
-        if Reset = '0' then
+        if Reset = '0' then -- reset StackPointer, CurrPointer, and SPout to highest val
             StackPointer <= "11111111";
             CurrPointer <= "11111111";
             SPout <= "11111111";
@@ -74,7 +76,11 @@ begin --8 bit register will simply store the value of flags.
             else                        -- when pushing
                 SPout <= CurrPointer;
 			   end if;
-        elsif rising_edge(Clock) and StackOp(0) = '0' then
+        elsif rising_edge(Clock) and StackOp(0) = '0' then -- during 1st cycle of push/pop
+                                                           -- (or any other clock that isn't
+                                                           -- the 2nd cycle of push/pop),
+                                                           -- store stack pointer in
+                                                           -- currPointer
             CurrPointer <= StackPointer;
         end if;
     end process;
