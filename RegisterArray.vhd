@@ -15,7 +15,11 @@ use opcodes.opcodes.all;
 --  signal that choses which register and the two possible buses it can
 --  output. A 32bit mux select is used to drive the enable line, and then 
 --  2 32-byte muxes are used to select the 2 byte output from the 32 
---  array register. 
+--  array register. The functionality for the XYZ reg is also coded,
+--  with these double registers used for memory accessing. Thus,
+--  there is another output of these special registers, along 
+--  with a separate select, so that the system can access these
+--  registers and normal registers at the same time.
 --
 --  Inputs:
 --      Clock                   - System Clock
@@ -35,6 +39,7 @@ use opcodes.opcodes.all;
 --
 --  Revision History:
 --     25 Jan 17  Camilo Saavedra     Initial revision.
+--     6  May 17  Camilo Saavedra     Added memory access register functionality
 --
 ----------------------------------------------------------------------------
 entity  RegisterArray  is
@@ -106,7 +111,9 @@ architecture Registers of RegisterArray is
         Sel:                      in std_logic_vector(4 downto 0)
     );
     end component;
-
+    
+	 -- Parallel mux choses X, Y, or Z dual register in order to
+	 -- output to the DMA
     component MuxXYZ is
     port(
         D26, D27, D28, D29, D30:   std_logic_vector(7 downto 0);
@@ -129,6 +136,11 @@ architecture Registers of RegisterArray is
     end component;
 
 begin 
+    -- Following statements are the logic that drive the 
+	 -- select signal when a RegXYZ select signal is 
+	 -- performed. If none of these are performed, the 
+	 -- signal is the normal register access select 
+	 -- line
     with RegXYZSel select SelXLow  <=
         '1'            when "00",
         SelectLine(26) when "01",
@@ -173,6 +185,7 @@ begin
         InputXYZ(15 downto 8) when '1',
         RegIn     when '0';
 
+    -- Chose which register input is used
     with UseImmed select RegIn <=
         Immediate when '1',
         Input     when '0';
@@ -210,7 +223,7 @@ begin
         Sel => RegBSel 
     );      
 
-
+	 -- XYZ Mux performs the muxing of the address registers.
     XYZ_Mux : MuxXYZ PORT MAP (    
         D26 => Q26,  D27 => Q27,  D28 => Q28,  D29 => Q29,  D30 => Q30,      
         D31 => Q31,  
@@ -326,7 +339,7 @@ begin
     Register_25: Register8Bit PORT MAP (
         D => RegIn, Q => Q25, En => SelectLine(25), Clock => clock
     );    
-    
+    -- Final registers mapped to the special XYZ signals.
     Register_26: Register8Bit PORT MAP (
         D => RegInLow, Q => Q26, En => SelXLow, Clock => clock
     );
