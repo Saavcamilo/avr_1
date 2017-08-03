@@ -38,6 +38,11 @@ use opcodes.opcodes.all;
 -- 	   2  Feb 17  Anant Desai 		Completed Instruction Decoding
 -- 	   5  Feb 17  Anant Desai 		Completed state machine to handle
 --									two cycle instructions
+--     15 May 17  Anant Desai		Completed implementing control singals for
+--									DMA instructions 
+--     28 Jul 17  Anant Desai 		Modified Push/Pop, MOV, LDI instructions
+--     29 Jul 17  Anant Desai       Updated state machine to handle 3 cycle 
+-- 									instructions
 ----------------------------------------------------------------------------
 
 entity  ControlUnit  is
@@ -710,9 +715,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		  	END IF;
 		 End if;
-
-
-
 		 If (std_match(InstructionOpCode, OpLDI)) then 
 		 	RegisterEn <= '1';	-- write to register
 		 	RegisterSel(4) <= '1';
@@ -724,9 +726,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	Write_Mem <= '1'; -- we are not writing (to memory)
 		 	FlagMask <= "00000000"; -- don't change any flags
 		 End if;
-
-
-
 		 If (std_match(InstructionOpCode, OpLDS)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '1';	-- write to register
@@ -737,7 +736,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+		 	ELSE -- for the second and third cycles, keep the signals as they are
 		 		RegisterEn <= '1';	-- write_Mem to register
 		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
@@ -748,7 +747,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		  	END IF;
 		 End if;
-
 		 If (std_match(InstructionOpCode, OpMOV)) then 
 		 	RegisterEn <= '1'; -- write output of ALU to register
 			   -- register to write result to
@@ -761,7 +759,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			FlagMask <= "00000000"; --indicates which bits to change in status register
 		 
 		 End if;
-
 		 If (std_match(InstructionOpCode, OpSTX)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
@@ -996,7 +993,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+		 	ELSE -- for the second and third cycles, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write_Mem to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
@@ -1009,7 +1006,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 
 		 End if;
 		 If (std_match(InstructionOpCode, OpPOP)) then 
-		 	IF (cycCounter = "00") then -- for cycles 1
+		 	IF (cycCounter = "00") then -- for cycles 1 (note PushPop signal isn't enabled)
 		 		RegisterEn <= '1';	-- write_Mem to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
 		 		PushPop <= "00";
@@ -1025,7 +1022,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		  	END IF;
 		 End if;
 		 If (std_match(InstructionOpCode, OpPUSH)) then 
-		 	IF(cycCounter = "00") then -- for cycles 1
+		 	IF(cycCounter = "00") then -- for cycles 1 (note PushPop signal isn't enabled)
 		 		RegisterEn <= '0';	-- write_Mem to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		
@@ -1043,7 +1040,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		end if;
     end process;
 	 
-	 transition: process(CurrentState, InstructionOpCode)
+	transition: process(CurrentState, InstructionOpCode)
     begin
         case CurrentState is
         	when STALL2 =>
