@@ -28,9 +28,19 @@ use opcodes.all;
 --  Outputs:
 --      Output                  - Result of the operation from the ALU operation
 --      StatReg                 - New flag values from the operation
+--                                  - StatReg(0): Carry Flag
+--                                  - StatReg(1): Zero Flag
+--                                  - StatReg(2): Negative Flag
+--                                  - StatReg(3): 2's complement overflow indicator
+--                                  - StatReg(4): Flag2 xor Flag3, for signed tests
+--                                  - StatReg(5): half carry flag
+--                                  - StatReg(6): transfer bit
+--                                  - StatReg(7): interrupt flag
+--      ZeroFlag                - zero flag (going to control unit)
 --
 --  Revision History:
 --     25 Jan 17  Camilo Saavedra     Initial revision.
+--      7 Aug 17  Anant Desai         Added Zero Flag output for CPSE instruction
 --
 ----------------------------------------------------------------------------
 
@@ -45,7 +55,8 @@ entity  ALU  is
 		Immediate :  in  std_logic_vector(7 downto 0);      -- 8bit value can use
                                                             -- as input 
         Output    :  out std_logic_vector(7 downto 0);      -- ALU result
-        StatReg   :  out std_logic_vector(7 downto 0)       -- status register
+        StatReg   :  out std_logic_vector(7 downto 0);      -- status register
+        ZeroFlag  :  out std_logic
     );
 
 end  ALU;
@@ -159,6 +170,7 @@ CalcFlag(7) <= Flag(7);
 -- Only change the flags that should be changed by masking with the FlagMask.              
 NegatedMask <= not FlagMask; 
 StatReg <= FBlockOutput when OperandSel(0) = '1' and OperandSel(7) = '1' else
-          (FlagMask and CalcFlag) or (NegatedMask and Flag);           
+          (FlagMask and CalcFlag) or (NegatedMask and Flag);   
+ZeroFlag <= StatReg(1);        
 Output <= Result;
 end architecture;
