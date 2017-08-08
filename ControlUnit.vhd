@@ -47,6 +47,7 @@ use opcodes.opcodes.all;
 --	    7 Aug 17  Anant Desai 		Added ZeroFlag input for CPSE instruction
 --      							Began instruction decoding for branching
 --									instructions
+--      8 Aug 17  Anant Desai 		added PCOp output signal for program counter
 ----------------------------------------------------------------------------
 
 entity  ControlUnit  is
@@ -67,6 +68,7 @@ entity  ControlUnit  is
 		RegisterXYZEn 	 : out    std_logic;
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
 		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
+		PCOp 			 : out    std_logic_vector(1 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
         LDRImmed		 : out 	  std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
@@ -98,6 +100,8 @@ begin
 		DMAOp <= "000"; -- DMAOp(2): "0" continue normally, "1" need to sum constant immediately (ex. LDD, STD) and post increment isn't soon enough
 						-- DMAOp(1): "0" use register, "1" use ImmediateM
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
+		PCOp <= "00"; -- PCOp(1): "0" means set PC to immediate, "1" means add PC to immediate
+					  -- PCOp(0): active high enable
         ImmediateM <= "0000000000000000";
         Read_Mem <= '1';	-- active low read signal
 		Write_Mem <= '1'; 	-- active low write signal
