@@ -47,7 +47,8 @@ use opcodes.opcodes.all;
 --	    7 Aug 17  Anant Desai 		Added ZeroFlag input for CPSE instruction
 --      							Began instruction decoding for branching
 --									instructions
---      8 Aug 17  Anant Desai 		added PCOp output signal for program counter
+--      8 Aug 17  Anant Desai 		added PMAOp output signal for program counter
+--								    manipulations
 ----------------------------------------------------------------------------
 
 entity  ControlUnit  is
@@ -68,7 +69,7 @@ entity  ControlUnit  is
 		RegisterXYZEn 	 : out    std_logic;
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
 		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
-		PCOp 			 : out    std_logic_vector(2 downto 0);
+		PMAOp 			 : out    std_logic_vector(2 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
         LDRImmed		 : out 	  std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
@@ -100,12 +101,12 @@ begin
 		DMAOp <= "000"; -- DMAOp(2): "0" continue normally, "1" need to sum constant immediately (ex. LDD, STD) and post increment isn't soon enough
 						-- DMAOp(1): "0" use register, "1" use ImmediateM
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
-		PCOp <= "000"; -- PCOp(2): "0" means set PC to immediate, "1" means add PC to immediate
-					   -- PCOp(1): if PCOp(2) = "0", 
-					   		-- then PCOp(1) = "0" means use immediate for new PC value
-					   		-- and PCOp(1) = "1" means use ProgAB input for new PC value
-					   	-- else if PCOp(2) = "1", then ignore PCOp(1)
-					   -- PCOp(0): active high enable
+		PMAOp <= "000"; -- PMAOp(2): "0" means set PC to immediate, "1" means add PC to immediate
+					   -- PMAOp(1): if PMAOp(2) = "0", 
+					   		-- then PMAOp(1) = "0" means use immediate for new PC value
+					   		-- and PMAOp(1) = "1" means use ProgAB input for new PC value
+					   	-- else if PMAOp(2) = "1", then ignore PMAOp(1)
+					   -- PMAOp(0): active high enable
         ImmediateM <= "0000000000000000"; -- progDB signal for DMA unit
         Read_Mem <= '1';	-- active low read signal
 		Write_Mem <= '1'; 	-- active low write signal
