@@ -52,10 +52,10 @@ entity ProgramMemoryAccessUnit is
         
         ProgAB    :     out   std_logic_vector(15 downto 0);
         NewAddr   :     out   std_logic_vector(15 downto 0)        );
-end DataMemoryAccessUnit; 
+end ProgramMemoryAccessUnit; 
 ---------------------------------------------
 
-architecture state_machine of DataMemoryAccessUnit is
+architecture Control_Flow of ProgramMemoryAccessUnit is
 
 -- An Address Adder is used to perform address arithmetic 
 Component AddressAdder is
@@ -82,7 +82,7 @@ end Component;
 begin
 
 AddrAdder: AddressAdder PORT MAP(
-    Subtract => AddrOpSel(0), A => InputAddress, B => Offset, 
+    Subtract => AddrOpSel(0), A => InputAddress, B => CondOffset, 
     LogicAddress => AddedAddr);
 -- Mux the actual address output depending on the bits in 
 -- AddrOpSel

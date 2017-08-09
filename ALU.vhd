@@ -79,6 +79,7 @@ signal AdderCarry: std_logic;
 signal AdderOverflow: std_logic;
 -- Negated mask is used to mask off flags that don't change.
 signal NegatedMask: std_logic_vector(7 downto 0);
+signal StatusReg: std_logic_vector(7 downto 0);
 
 Component FBlock is
     port(
@@ -169,8 +170,9 @@ CalcFlag(6) <= '0' when OperandSel(9 downto 8) = "01" and OperandSel(0) = '0' an
 CalcFlag(7) <= Flag(7);
 -- Only change the flags that should be changed by masking with the FlagMask.              
 NegatedMask <= not FlagMask; 
-StatReg <= FBlockOutput when OperandSel(0) = '1' and OperandSel(7) = '1' else
+StatusReg <= FBlockOutput when OperandSel(0) = '1' and OperandSel(7) = '1' else
           (FlagMask and CalcFlag) or (NegatedMask and Flag);   
-ZeroFlag <= StatReg(1);        
+ZeroFlag <= StatusReg(1);
+StatReg <= StatusReg;
 Output <= Result;
 end architecture;

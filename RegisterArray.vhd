@@ -60,7 +60,8 @@ entity  RegisterArray  is
 
         RegAOut  :  out std_logic_vector(7 downto 0);       -- register bus A out
         RegBOut  :  out std_logic_vector(7 downto 0);       -- register bus B out
-        RegXYZOut:  out std_logic_vector(15 downto 0)
+        RegXYZOut:  out std_logic_vector(15 downto 0);
+		  RegZOut  :  out std_logic_vector(15 downto 0)       -- output used for IJMP
     );
 end  RegisterArray;
 
@@ -136,7 +137,9 @@ architecture Registers of RegisterArray is
     end component;
 
 begin 
-    -- Following statements are the logic that drive the 
+   RegZOut(7 downto 0)  <= Q30;
+	RegZOut(15 downto 8) <= Q31; 
+    -- Following statements are the logic that drive the  
 	 -- select signal when a RegXYZ select signal is 
 	 -- performed. If none of these are performed, the 
 	 -- signal is the normal register access select 
