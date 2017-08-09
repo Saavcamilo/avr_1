@@ -49,6 +49,8 @@ use opcodes.opcodes.all;
 --									instructions
 --      8 Aug 17  Anant Desai 		added PMAOp output signal for program counter
 --								    manipulations
+-- 	    9 Aug 17  Anant Desai 		added output signal to mux register input
+--									between alu output and data bus 
 ----------------------------------------------------------------------------
 
 entity  ControlUnit  is
@@ -58,9 +60,9 @@ entity  ControlUnit  is
         InstructionOpCode :  in  opcode_word; 
         Flags            :  in  std_logic_vector(7 downto 0);	
         ZeroFlag 		 :  in  std_logic;
-        IRQ 			 :  in  std_logic_vector(7 downto 0);	
-        FetchIR          :  out std_logic; 
+        IRQ 			 :  in  std_logic_vector(7 downto 0);
 
+        FetchIR          : out 	  std_logic; 
         PushPop 		 : out    std_logic_vector(1 downto 0);
         RegisterEn       : out    std_logic;
 		RegisterSel	 	 : out 	  std_logic_vector(4 downto 0);
@@ -68,6 +70,7 @@ entity  ControlUnit  is
 		RegisterBSel     : out    std_logic_vector(4 downto 0);
 		RegisterXYZEn 	 : out    std_logic;
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
+		RegInMux 		 : out 	  std_logic_vector(1 downto 0);
 		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
 		PMAOp 			 : out    std_logic_vector(2 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
@@ -94,19 +97,23 @@ begin
 	process(InstructionOpCode, Clock, Flags(6), CycCounter) 
 	begin
 		-- initialize outputs
-        RegisterXYZEn <= '0'; -- xyz register is inactive
-		RegisterXYZSel <= "11"; -- xyz register is selecting x
+        RegisterXYZEn <= '0'; -- "0" means xyz register is inactive, "1" means active
+		RegisterXYZSel <= "11"; -- "00" xyz register is selecting x
+								-- "01" xyz register is selecting y
+								-- "10" xyz register is selecting z
+								-- "11" xyz register is not selecting x, y, or z
 		PushPop <= "00"; -- PushPop(1): "0" means pop, "1" means push
 				   		 -- PushPop(0): active high enable
 		DMAOp <= "000"; -- DMAOp(2): "0" continue normally, "1" need to sum constant immediately (ex. LDD, STD) and post increment isn't soon enough
 						-- DMAOp(1): "0" use register, "1" use ImmediateM
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
-		PMAOp <= "000"; -- PMAOp(2): "0" means set PC to immediate, "1" means add PC to immediate
-					   -- PMAOp(1): if PMAOp(2) = "0", 
+		PMAOp <= "000"; -- PMAOp(2): active high enable 
+					    -- PMAOp(1): "0" means set PC to immediate, "1" means add PC to immediate
+					    -- PMAOp(0): if PMAOp(1) = "0", 
 					   		-- then PMAOp(1) = "0" means use immediate for new PC value
 					   		-- and PMAOp(1) = "1" means use ProgAB input for new PC value
-					   	-- else if PMAOp(2) = "1", then ignore PMAOp(1)
-					   -- PMAOp(0): active high enable
+					   	  -- else if PMAOp(1) = "1", then ignore PMAOp(1)
+					   
         ImmediateM <= "0000000000000000"; -- progDB signal for DMA unit
         Read_Mem <= '1';	-- active low read signal
 		Write_Mem <= '1'; 	-- active low write signal
@@ -114,6 +121,9 @@ begin
 		RegisterSel <= "00000"; -- register to put result in (if applicable)
 		RegisterASel <= "00000"; -- register to obtain operand A
 		RegisterBSel <= "00000"; -- register to obtain operand B
+		RegMux <= "00"; 	-- RegMux(1): active high enable (indicates either ALU or data bus wants to connect to register)
+							-- RegMux(0): "0" means alu output goes into reg input, 
+							-- 			  "1" means data bus connects to reg input/output (for load/store respectively)
 		OpSel <= "0000000000";	-- operand code to ALU
 								-- OpSel(9 downto 8): "01" is logical, "10" is shift, "11" is add/sub
 								-- OpSel(7): 1 if immediate passed to operand B, 0 if not
@@ -128,8 +138,9 @@ begin
 		
 		If std_match(InstructionOpCode, OpASR) then -- arithmetic shift right
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
-			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
+			RegMux <= "10"; -- ALU output goes into register input
 			-- opcode to ALU 
 			OpSel(9 downto 8) <= "10";
 			OpSel(7 downto 2) <= InstructionOpCode(5 downto 0);
@@ -138,8 +149,9 @@ begin
 		 END IF;
 		If (std_match(InstructionOpCode, OpLSR)) then 
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
-			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
+			RegMux <= "10"; -- ALU output goes into register input
 			-- opcode to ALU 
 			OpSel(9 downto 8) <= "10";
 			OpSel(7 downto 2) <= InstructionOpCode(5 downto 0);
@@ -148,8 +160,9 @@ begin
 		 END IF;
 		If (std_match(InstructionOpCode, OpROR)) then 
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
-			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
+			RegMux <= "10"; -- ALU output goes into register input
 			-- opcode to ALU 
 			OpSel(9 downto 8) <= "10";
 			OpSel(7 downto 2) <= InstructionOpCode(5 downto 0);
@@ -158,8 +171,9 @@ begin
 		 END IF;
 		If (std_match(InstructionOpCode, OpSWAP)) then 
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
-			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
+			RegMux <= "10"; -- ALU output goes into register input
 			-- opcode to ALU 
 			OpSel(9 downto 8) <= "10";
 			OpSel(3 downto 0) <= "0000";
@@ -167,32 +181,35 @@ begin
 		 END IF;
 		 If (std_match(InstructionOpCode, OpADC)) then 
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  -- opcode to ALU 
 			  OpSel <= "1100000010";
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpADD)) then
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1100000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpAND)) then 
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "0100100000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
@@ -206,12 +223,13 @@ begin
 			  RegisterASel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "0110100000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
 
 		 If (std_match(InstructionOpCode, OpBCLR)) then 
-			  RegisterEn <= '0'; -- do not write_Mem output of ALU to register
+			  RegisterEn <= '0'; -- do not write output of ALU to register
            case InstructionOpCode(6 downto 4) is --decode which bit of stat reg to clear
 					when "000" => Immediate <=  "11111110";
 					when "001" => Immediate <=  "11111101";
@@ -222,12 +240,13 @@ begin
 					when "110" => Immediate <=  "10111111";
 					when others => Immediate <= "01111111";
 			  end case;
+			  RegMux <= "00"; -- ALU output doesn't go into register
 			  OpSel <= "0110100001"; -- opcode to ALU 
 			  FlagMask <= "11111111"; --indicates which bits to change in status register
 		 END IF;
 
 		 If (std_match(InstructionOpCode, OpBLD)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
+			  RegisterEn <= '1'; -- write output of ALU to register
 			  RegisterSel <= InstructionOpCode(8 downto 4);  -- register to write_Mem output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			  if Flags(6) = '0' then
@@ -255,11 +274,12 @@ begin
 			  end case;
 			  OpSel <= "0110111000"; -- opcode to ALU 
 			  END IF;
+			  RegMux <= "10"; -- ALU output goes into register input
 			  FlagMask <= "00000000"; --indicates which bits to change in status register
 		 END IF;
 
 		 If (std_match(InstructionOpCode, OpBSET)) then 
-			  RegisterEn <= '0'; -- do not write_Mem output of ALU to register
+			  RegisterEn <= '0'; -- do not write output of ALU to register
            case InstructionOpCode(6 downto 4) is --decode which bit of stat reg to set
 					when "000" => Immediate <=  "00000001";
 					when "001" => Immediate <=  "00000010";
@@ -270,12 +290,13 @@ begin
 					when "110" => Immediate <=  "01000000";
 					when others => Immediate <= "10000000";
 			  end case;
+			  RegMux <= "00"; -- ALU output does not go into register
 			  OpSel <= "0110111001"; -- opcode to ALU 
 			  FlagMask <= "11111111"; --indicates which bits to change in status register
 		 END IF;
 
 		 If (std_match(InstructionOpCode, OpBST)) then 
-			  RegisterEn <= '0'; -- do not write_Mem output of ALU to register
+			  RegisterEn <= '0'; -- do not write output of ALU to register
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
            case InstructionOpCode(2 downto 0) is -- decode which bit of register to extract
 					when "000" => Immediate <=  "00000001";
@@ -287,91 +308,101 @@ begin
 					when "110" => Immediate <=  "01000000";
 					when others => Immediate <= "10000000";
 			  end case;
+			  RegMux <= "00"; -- ALU output does not go into register
 			  OpSel <= "0110100000"; -- opcode to ALU 
 			  FlagMask <= "01000000"; --indicates which bits to change in status register
 		 END IF;
 
 		 If (std_match(InstructionOpCode, OpCOM)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
+			  RegisterEn <= '1'; -- write output of ALU to register
 			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "0100001100"; -- opcode to ALU 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCP)) then 
-			  RegisterEn <= '0'; -- do not write_Mem output of ALU to register
+			  RegisterEn <= '0'; -- do not write output of ALU to register
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "00"; -- ALU output does not go into register input
 			  OpSel <= "1101000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCPC)) then 
-			  RegisterEn <= '0'; -- do not write_Mem output of ALU to register
+			  RegisterEn <= '0'; -- do not write output of ALU to register
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "00"; -- ALU output does not go into register input
 			  OpSel <= "1101000110"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCPI)) then 
-			  RegisterEn <= '0'; -- do not write_Mem output of ALU to register
+			  RegisterEn <= '0'; -- do not write output of ALU to register
 			   -- register to extract operand from
 			  RegisterASel(4) <= '1'; 
 			  RegisterASel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
+			  RegMux <= "00"; -- ALU output does not go into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpDEC)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterEn <= '1'; -- write output of ALU to register
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			  Immediate <= "00000001";
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpEOR)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterEn <= '1'; -- write output of ALU to register
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "0100011000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpINC)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterEn <= '1'; -- write output of ALU to register
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			  Immediate <= "00000001";
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1110000000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpNEG)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterEn <= '1'; -- write output of ALU to register
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterBSel <= InstructionOpCode(8 downto 4); -- register to extract operand from
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1101000001"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
               Immediate <= "00000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpOR)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "0100111000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpORI)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
+			  RegisterEn <= '1'; -- write output of ALU to register
 			   -- register to write output to
 			  RegisterSel(4) <= '1';
 			  RegisterSel(3 downto 0) <= InstructionOpCode(7 downto 4);
@@ -380,22 +411,24 @@ begin
 			  RegisterASel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "0110111000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBC)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
-			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
+			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1101000010"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBCI)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
-			   -- register to write_Mem output to
+			   -- register to write output to
 			  RegisterSel(4) <= '1';
 			  RegisterSel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			   -- register to extract operand from
@@ -403,22 +436,24 @@ begin
 			  RegisterASel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1111000010"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		If (std_match(InstructionOpCode, OpSUB)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
+			  RegisterEn <= '1'; -- write output of ALU to register
 			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			   -- register to extract operand from
 			  RegisterBSel(4) <= InstructionOpCode(9);
 			  RegisterBSel(3 downto 0) <= InstructionOpcode(3 downto 0);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1101000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSUBI)) then 
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			   -- register to write_Mem output to
+			  RegisterEn <= '1'; -- write output of ALU to register
+			   -- register to write output to
 			  RegisterSel(4) <= '1';
 			  RegisterSel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			   -- register to extract operand from
@@ -426,14 +461,15 @@ begin
 			  RegisterASel(3 downto 0) <= InstructionOpCode(7 downto 4);
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
 		 END IF;
 		 If (std_match(InstructionOpCode, OpADIW)) then 
 		 
 			IF (cycCounter = "00") then -- first add immediate from higher num register using regular add
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			   -- register to write_Mem output to
+			  RegisterEn <= '1'; -- write output of ALU to register
+			   -- register to write output to
 			  RegisterSel(4 downto 3) <= "11";
 			  RegisterSel(2 downto 1) <= InstructionOpCode(5 downto 4);
 			  RegisterSel(0) <= '0';
@@ -441,17 +477,17 @@ begin
 			  RegisterASel(4 downto 3) <= "11";
 			  RegisterASel(2 downto 1) <= InstructionOpCode(5 downto 4);
 			  RegisterASel(0) <= '0';
-
 			  
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(5 downto 4) <= InstructionOpCode(7 downto 6);
 			  Immediate(7 downto 6) <= "00";
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1110000000"; -- opcode to ALU 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
 			else  -- then add 1 to higher num register if carry flag set
 			
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
-			   -- register to write_Mem output to
+			   -- register to write output to
 			  RegisterSel(4 downto 3) <= "11";
 			  RegisterSel(2 downto 1) <= InstructionOpCode(5 downto 4);
 			  RegisterSel(0) <= '1';
@@ -464,6 +500,7 @@ begin
 			  else
 					Immediate <= "00000001";
 			  END IF;
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1110000100"; -- opcode to ALU
 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
@@ -474,7 +511,7 @@ begin
 		 If (std_match(InstructionOpCode, OpSBIW)) then 
 
 			IF (cycCounter = "00") then -- first subtract immediate from lower num register using regular SUBI
-			  RegisterEn <= '1'; -- write_Mem output of ALU to register
+			  RegisterEn <= '1'; -- write output of ALU to register
 			   -- register to write_Mem output to
 			  RegisterSel(4 downto 3) <= "11";
 			  RegisterSel(2 downto 1) <= InstructionOpCode(5 downto 4);
@@ -488,6 +525,7 @@ begin
 			  Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 			  Immediate(5 downto 4) <= InstructionOpCode(7 downto 6);
 			  Immediate(7 downto 6) <= "00";
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
 
@@ -506,6 +544,7 @@ begin
 			  else
 					Immediate <= "00000001";
 			  END IF;
+			  RegMux <= "10"; -- ALU output goes into register input
 			  OpSel <= "1111000100"; -- opcode to ALU
 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
@@ -520,6 +559,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000000";
 		 		Read_Mem <= '0'; -- we are reading
@@ -530,6 +570,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000000";
 		 		Read_Mem <= '0'; -- we are reading
@@ -543,6 +584,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -553,6 +595,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -566,6 +609,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -576,6 +620,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -589,6 +634,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -599,6 +645,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -612,6 +659,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -622,6 +670,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -635,6 +684,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -645,6 +695,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -658,6 +709,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -668,6 +720,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '0'; -- we are reading
@@ -681,6 +734,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -693,6 +747,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -708,6 +763,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -720,6 +776,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -733,6 +790,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	RegisterEn <= '1';	-- write to register
 		 	RegisterSel(4) <= '1';
 		 	RegisterSel(3 downto 0) <= InstructionOpCode(7 downto 4); -- register to write to
+		 	RegMux <= "00"; -- don't connect register to alu output or dma output
 		 	LDRImmed <= '1'; -- load immediate to register
 		 	Immediate(3 downto 0) <= InstructionOpCode(3 downto 0);
 		 	Immediate(7 downto 4) <= InstructionOpCode(11 downto 8);
@@ -746,6 +804,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
@@ -755,6 +814,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
@@ -768,6 +828,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			RegisterASel(4) <= InstructionOpCode(9); 
 			RegisterASel(3 downto 0) <= InstructionOpCode(3 downto 0);
 			Immediate <= "11111111";
+			RegMux <= "10"; -- ALU output connects to register input
 			OpSel <= "0110100000"; -- opcode to ALU, AND with immediate (all 1's) and store
 									-- result in new register
 			FlagMask <= "00000000"; --indicates which bits to change in status register
@@ -779,6 +840,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000000";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -786,9 +848,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000000";
 		 		Read_Mem <= '1'; -- we are not read
@@ -800,9 +863,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTXI)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not read
@@ -810,9 +874,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are reading
@@ -824,9 +889,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTXD)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -834,9 +900,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "00"; -- register XYZ is selecting register X
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -848,9 +915,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTYI)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not read
@@ -858,9 +926,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -872,9 +941,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTYD)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -882,9 +952,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -896,9 +967,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTZI)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -906,9 +978,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "000";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -920,9 +993,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTZD)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not read
@@ -930,9 +1004,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "001";
 		 		Immediate <= "00000001";
 		 		Read_Mem <= '1'; -- we are not reading
@@ -944,9 +1019,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTDY)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -956,9 +1032,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "01"; -- register XYZ is selecting register Y
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -972,9 +1049,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTDZ)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -984,9 +1062,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second cycle, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "100";
 		 		Immediate(2 downto 0) <= InstructionOpCode(2 downto 0);
 		 		Immediate(4 downto 3) <= InstructionOpCode(11 downto 10);
@@ -1000,18 +1079,20 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTS)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- for the second and third cycles, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write_Mem to
+		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
@@ -1022,13 +1103,14 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpPOP)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1 (note PushPop signal isn't enabled)
 		 		RegisterEn <= '1';	-- write_Mem to register
-		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
+		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		PushPop <= "00";
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- set PushPop signal to enabled
 		 		RegisterEn <= '1';	-- write_Mem to register
-		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem to
-		 		
+		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
+		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		PushPop <= "01";
 		 		
 		 		
@@ -1039,14 +1121,14 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF(cycCounter = "00") then -- for cycles 1 (note PushPop signal isn't enabled)
 		 		RegisterEn <= '0';	-- write_Mem to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		PushPop <= "10";
 		 		
 		 		FlagMask <= "00000000"; -- don't change any flags
 		 	ELSE -- set PushPop signal to enabled
 		 		RegisterEn <= '0';	-- write_Mem to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
+		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		PushPop <= "11";
 
 		 		FlagMask <= "00000000"; -- don't change any flags

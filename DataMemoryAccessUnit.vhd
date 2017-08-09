@@ -51,6 +51,8 @@ entity DataMemoryAccessUnit is
         Offset    :     in   std_logic_vector(5 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
         AddrOpSel :     in   std_logic_vector(2 downto 0);
+        StackOp   :     in   std_logic_vector(1 downto 0);
+        SP        :     in   std_logic_vector(7 downto 0)
         DataDB    :     inout   std_logic_vector(7 downto 0);
         
         DataAB    :     out   std_logic_vector(15 downto 0);
