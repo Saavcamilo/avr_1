@@ -38,20 +38,21 @@ use ieee.numeric_std.all;
 --
 --  Revision History:
 --     31 Mar 17  Camilo Saavedra     Initial revision.
---     4  Jun 17  Camilo Saavedra     Fixed error with the FSM that controls 
---                                    the signals
---     5  Jul 17  Camilo Saavedra     Fixed bug
+--     10 Aug 17  Anant Desai         Began implementing PC functionality
 ----------------------------------------------------------------------------
 entity ProgramMemoryAccessUnit is
     port(
-        InputAddress:   in   std_logic_vector(15 downto 0);
-        Clock     :     in   std_logic; 
-        CondOffset:     in   std_logic_vector(5 downto 0);
-        AddrOpSel :     in   std_logic_vector(2 downto 0);
-        ProgDB    :     inout   std_logic_vector(7 downto 0);
+        RegZ      :     in   std_logic_vector(15 downto 0);
+        Clock     :     in   std_logic;
+        Reset     :     in   std_logic;
         
-        ProgAB    :     out   std_logic_vector(15 downto 0);
-        NewAddr   :     out   std_logic_vector(15 downto 0)        );
+        Offset    :     in   std_logic_vector(11 downto 0);
+        PMAOpSel  :     in   std_logic_vector(3 downto 0);
+        ProgDB    :     inout   std_logic_vector(15 downto 0);
+        
+        ProgAB    :     out   std_logic_vector(15 downto 0) -- PC value
+         
+        );
 end ProgramMemoryAccessUnit; 
 ---------------------------------------------
 

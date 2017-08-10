@@ -193,7 +193,7 @@ begin
     -- Chose which register input is used
     with RegMux   select RegIn <=
         Immediate when "00",
-		  MemInput  when "01",
+		  MemInput  when "10",
         ALUInput  when "11";
         
     -- Select decoder generates 32 select lines from the 5 bit input.
