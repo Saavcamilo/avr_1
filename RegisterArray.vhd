@@ -47,11 +47,13 @@ entity  RegisterArray  is
     port(
         clock    :  in  std_logic;                          -- system clock
         Enable   :  in  std_logic;       							-- Enables the registers 
-        UseImmed :  in  std_logic;
+        RegMux   :  in  std_logic(1 downto 0);
         Selects  :  in  std_logic_vector(4 downto 0);       -- Selects output register
         RegASel  :  in  std_logic_vector(4 downto 0);
         RegBSel  :  in  std_logic_vector(4 downto 0);
-        Input    :  in  std_logic_vector(7 downto 0);       -- input register bus
+        ALUInput :  in  std_logic_vector(7 downto 0);       -- input register bus
+		  MemInput :  in  std_logic_vector(7 downto 0);
+		  
         Immediate:  in  std_logic_vector(7 downto 0);
         RegXYZEn :  in  std_logic;
         RegXYZSel:  in  std_logic_vector(1 downto 0);
@@ -189,9 +191,10 @@ begin
         RegIn     when '0';
 
     -- Chose which register input is used
-    with UseImmed select RegIn <=
-        Immediate when '1',
-        Input     when '0';
+    with RegMux   select RegIn <=
+        Immediate when "00",
+		  MemInput  when "01",
+        ALUInput  when "11";
         
     -- Select decoder generates 32 select lines from the 5 bit input.
     Sel_Decoder: Decoder32Bit PORT MAP(
