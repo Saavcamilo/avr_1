@@ -70,7 +70,7 @@ entity  ControlUnit  is
 		RegisterBSel     : out    std_logic_vector(4 downto 0);
 		RegisterXYZEn 	 : out    std_logic;
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
-		RegInMux 		 : out 	  std_logic_vector(1 downto 0);
+		RegMux 		     : out 	  std_logic_vector(1 downto 0);
 		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
 		PMAOp 			 : out    std_logic_vector(2 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
