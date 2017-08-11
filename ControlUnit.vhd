@@ -77,6 +77,7 @@ entity  ControlUnit  is
         LDRImmed		 : out 	  std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
         Immediate        : out    std_logic_vector(7 downto 0);
+        PCoffset 		 : out 	  std_logic_vector(11 downto 0);
         Read_Mem 	 	 : out    std_logic;
         Write_Mem 	     : out 	  std_logic
         );
@@ -112,7 +113,7 @@ begin
 					   		-- then PMAOp(1) = "0" means use immediate for new PC value
 					   		-- and PMAOp(1) = "1" means use ProgAB input for new PC value
 					   	  -- else if PMAOp(1) = "1", then ignore PMAOp(1)
-					   
+		PCoffset <= "000000000000"; -- immediate offset passed into PMA unit
         Read_Mem <= '1';	-- active low read signal
 		Write_Mem <= '1'; 	-- active low write signal
 		RegisterEn <= '0'; -- 1 indicates write result to register, 0 indicates don't write to register
