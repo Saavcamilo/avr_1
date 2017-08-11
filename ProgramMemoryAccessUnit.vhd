@@ -48,6 +48,9 @@ entity ProgramMemoryAccessUnit is
         
         Offset    :     in   std_logic_vector(11 downto 0);
         PMAOpSel  :     in   std_logic_vector(3 downto 0);
+
+        DataDB    :     in   std_logic_vector(7 downto 0); -- needed for RET, RETI
+
         ProgDB    :     inout   std_logic_vector(15 downto 0);
         
         ProgAB    :     out   std_logic_vector(15 downto 0) -- PC value
@@ -63,12 +66,26 @@ Component AddressAdder is
     port(
         Subtract:  in  std_logic;
         A:   in  std_logic_vector(15 downto 0);
-        B:    in  std_logic_vector(5 downto 0);
+        B:   in  std_logic_vector(11 downto 0);
         
         LogicAddress: out std_logic_vector(15 downto 0)
 		  
     );
 end Component;
+
+-- An Incrementer is used to perform PC incrementing by 1
+Component Incrementer is
+    port(
+        Subtract:  in  std_logic;
+        A:   in  std_logic_vector(15 downto 0);
+        B:   in  std_logic;
+        
+        LogicAddress: out std_logic_vector(15 downto 0)
+          
+    );
+end Component;
+
+
 -- States of the FSM simply store the state of the access
     type state is (
         CLK1,

@@ -29,7 +29,6 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity Incrementer is
     port(
-        Subtract:  in  std_logic;
         A:   in  std_logic_vector(15 downto 0);
         B:   in  std_logic;
         
@@ -47,13 +46,13 @@ begin
     for I in 0 to 15 generate
         Lower_Bits: if I <1 Generate
             LogicAddress(I) <= A(I) xor B xor CarryBus(I);
-            CarryBus(I+1) <=  (((A(I) xor Subtract) and B or ((A(I) xor Subtract) and CarryBus(I))
+            CarryBus(I+1) <=  ((A(I) and B) or (A(I) and CarryBus(I))
                                 or (B and CarryBus(I)));
         end generate Lower_bits;  
         
         Higher_Bits: if I > 0 Generate
             LogicAddress(I) <= A(I) xor CarryBus(I);
-            CarryBus(I+1) <=  ((A(I) xor Subtract) and CarryBus(I));
+            CarryBus(I+1) <=  (A(I) and CarryBus(I));
         end generate Higher_Bits;            
 		  
     end generate GEN_ADDER;
