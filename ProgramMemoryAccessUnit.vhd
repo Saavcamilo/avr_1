@@ -61,10 +61,15 @@ end ProgramMemoryAccessUnit;
 
 architecture Control_Flow of ProgramMemoryAccessUnit is
 
+-- Need to keep tract of the different address sources to 
+-- mux them depending on the desired operation. 
+signal ProgramCounter : std_logic_vector(15 downto 0);
+signal IncrementedPC  : std_logic_vector(15 downto 0);
+signal OffsetPC       : std_logic_vector(15 downto 0);
+
 -- An Address Adder is used to perform address arithmetic 
 Component PCAddrAdder is
     port(
-        Subtract:  in  std_logic;
         A:   in  std_logic_vector(15 downto 0);
         B:   in  std_logic_vector(11 downto 0);
         
@@ -73,7 +78,7 @@ Component PCAddrAdder is
     );
 end Component;
 
--- An Incrementer is used to perform PC incrementing by 1
+-- An Incrementer is used to increment PC by 1
 Component Incrementer is
     port(
         A:   in  std_logic_vector(15 downto 0);
@@ -83,24 +88,19 @@ Component Incrementer is
           
     );
 end Component;
+    
 
-
--- States of the FSM simply store the state of the access
-    type state is (
-        CLK1,
-        CLK2,
-        CLK3
-    );     
-    signal CurrentState, NextState: state;
--- Need to keep tract of the different address sources to 
--- mux them depending on the desired operation. 
-	 signal ConstAddr: std_logic_vector(15 downto 0);
-    signal AddedAddr: std_logic_vector(15 downto 0);
 begin
 
-AddrAdder: AddressAdder PORT MAP(
-    Subtract => AddrOpSel(0), A => InputAddress, B => CondOffset, 
-    LogicAddress => AddedAddr);
+PCIncrementer: Incrementer PORT MAP(
+    A => ProgramCounter, B => '1', 
+    LogicAddress => IncrementedPC);
+
+PCAdder: PCAddrAdder PORT MAP(
+    A => IncrementedPC, B => Offset, 
+    LogicAddress => OffsetPC);
+
+
 -- Mux the actual address output depending on the bits in 
 -- AddrOpSel
 ProgAB  <=    AddedAddr when AddrOpSel(2) = '1' else
