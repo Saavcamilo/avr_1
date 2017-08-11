@@ -77,7 +77,6 @@ entity  ControlUnit  is
         LDRImmed		 : out 	  std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
         Immediate        : out    std_logic_vector(7 downto 0);
-        ImmediateM 		 : out 	  std_logic_vector(15 downto 0);
         Read_Mem 	 	 : out    std_logic;
         Write_Mem 	     : out 	  std_logic
         );
@@ -105,7 +104,7 @@ begin
 		PushPop <= "00"; -- PushPop(1): "0" means pop, "1" means push
 				   		 -- PushPop(0): active high enable
 		DMAOp <= "000"; -- DMAOp(2): "0" continue normally, "1" need to sum constant immediately (ex. LDD, STD) and post increment isn't soon enough
-						-- DMAOp(1): "0" use register, "1" use ImmediateM
+						-- DMAOp(1): "0" use register, "1" use ProgDB 16 bit value
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
 		PMAOp <= "000"; -- PMAOp(2): active high enable 
 					    -- PMAOp(1): "0" means set PC to immediate, "1" means add PC to immediate
@@ -114,7 +113,6 @@ begin
 					   		-- and PMAOp(1) = "1" means use ProgAB input for new PC value
 					   	  -- else if PMAOp(1) = "1", then ignore PMAOp(1)
 					   
-        ImmediateM <= "0000000000000000"; -- progDB signal for DMA unit
         Read_Mem <= '1';	-- active low read signal
 		Write_Mem <= '1'; 	-- active low write signal
 		RegisterEn <= '0'; -- 1 indicates write result to register, 0 indicates don't write to register
@@ -802,7 +800,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
-		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
 		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
@@ -812,7 +809,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	ELSE -- for the second and third cycles, keep the signals as they are
 		 		RegisterEn <= '1';	-- write_Mem to register
 		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
-		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
 		 		RegMux <= "11"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
@@ -1080,7 +1076,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
-		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
 		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
@@ -1090,7 +1085,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	ELSE -- for the second and third cycles, keep the signals as they are
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
-		 		ImmediateM <= InstructionOpCode(15 downto 0);
 		 		Immediate <= "00000000";
 		 		RegMux <= "11"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
