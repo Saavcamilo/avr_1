@@ -62,7 +62,7 @@ end ProgramMemoryAccessUnit;
 architecture Control_Flow of ProgramMemoryAccessUnit is
 
 -- An Address Adder is used to perform address arithmetic 
-Component AddressAdder is
+Component PCAddrAdder is
     port(
         Subtract:  in  std_logic;
         A:   in  std_logic_vector(15 downto 0);
@@ -76,7 +76,6 @@ end Component;
 -- An Incrementer is used to perform PC incrementing by 1
 Component Incrementer is
     port(
-        Subtract:  in  std_logic;
         A:   in  std_logic_vector(15 downto 0);
         B:   in  std_logic;
         
