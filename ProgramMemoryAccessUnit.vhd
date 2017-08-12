@@ -66,6 +66,7 @@ architecture Control_Flow of ProgramMemoryAccessUnit is
 signal ProgramCounter : std_logic_vector(15 downto 0);
 signal IncrementedPC  : std_logic_vector(15 downto 0);
 signal OffsetPC       : std_logic_vector(15 downto 0);
+signal NewPC          : std_logic_vector(15 downto 0);
 
 -- An Address Adder is used to perform address arithmetic 
 Component PCAddrAdder is
@@ -112,12 +113,12 @@ PCAdder: PCAddrAdder PORT MAP(
 
 -- Mux the actual address output depending on the bits in 
 -- AddrOpSel
-ProgAB  <=    ProgDB when PMAOpSel(2 downto 1) = "00" else
+NewPC   <=    ProgDB when PMAOpSel(2 downto 1) = "00" else
 			  RegZ when PMAOpSel(2 downto 1) = "01" else
 			  OffsetPC when PMAOpSel(2 downto 1) = "10" else
               DataDB when PMAOpSel(2 downto 1) = "11" else
               ProgramCounter; 
-              
+
 
     transition: process(CurrentState, Clock, Reset)
     begin
