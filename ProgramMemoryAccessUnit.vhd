@@ -88,6 +88,14 @@ Component Incrementer is
           
     );
 end Component;
+
+-- States of the FSM simply store the state of the access
+    type state is (
+        CLK1,
+        CLK2,
+        CLK3
+    );     
+    signal CurrentState, NextState: state;
     
 
 begin
@@ -108,6 +116,87 @@ ProgAB  <=    AddedAddr when AddrOpSel(2) = '1' else
 			  AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
 -- THe NewAddr is always the address post arithmetic.              
-NewAddr <=    AddedAddr;              
+NewAddr <=    AddedAddr;     
+
+
+
+    transition: process(CurrentState, WrIn, RdIn, Clock)
+    begin
+        case CurrentState is
+              -- CLK1 acts as the idle state, transition 
+                -- only when wrin or rdin signal is
+                -- asserted
+            when CLK1 =>
+                if (WrIn = '0' or RdIn = '0') then
+                    NextState <= CLK2;
+                else
+                    NextState <= CLK1;
+                end if;
+                -- Most operations are 2 clks, else, 
+                -- AddrOpSel(1) is asserted
+            when CLK2 =>
+                if (AddrOpSel(1) = '1') then
+                    NextState <= CLK3;
+                else
+                    NextState <= CLK1; 
+                end if;
+                -- Only other state is Clk3, which
+                -- always transitions back to Idle
+               when others =>
+                    NextState <= CLK1;
+        end case;
+    end process transition;
+
+    outputs: process (Clock, CurrentState)
+    begin
+        case CurrentState is
+          -- DataWr/DataRd are never asserted
+          -- on the first clock, but on hte 
+          -- second half of the last clock
+            when CLK1 =>
+                ConstAddr <= ProgDB;
+                    DataWr <= '1';
+                          DataRd <= '1';
+            when CLK2 =>
+                    --ConstAddr is manipulated for the three cycle
+                     -- instructions 
+                    ConstAddr <= ConstAddr;
+                     -- If clk = 0 and it is a two cycle instruction,
+                     -- then we assert the wanted DataW/R signal
+                if ((Clock = '0') and (AddrOpSel(1) = '0')) then 
+                    DataWr <= WrIn;
+                    DataRd <= RdIn;
+                    else
+                     -- else it is a 3 clock cycle or we are still in
+                     -- the first half of the clock
+                    DataWr <= '1';
+                          DataRd <= '1';                     
+                end if;
+                when CLK3 =>
+                     --ConstAddr is manipulated for the three cycle
+                     -- instructions 
+                     ConstAddr <= ConstAddr;
+                if (Clock = '0') then 
+                    DataWr <= WrIn;
+                    DataRd <= RdIn;
+                    else
+                    DataWr <= '1';
+                          DataRd <= '1';                     
+                end if;     
+        end case;
+    end process outputs;
+
+    storage: process (Clock)
+    begin
+        if (rising_edge(Clock)) then
+            CurrentState <= NextState;
+        end if;
+    end process storage;
+
+
+
+
+
+
     
 end architecture;
