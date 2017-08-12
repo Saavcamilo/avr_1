@@ -108,7 +108,7 @@ begin
 						-- DMAOp(1): "0" use register, "1" use ProgDB 16 bit value
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
 		PMAOp <= "0000"; -- PMAOp(3): ???
-					     -- PMAOp(2 downto 1): "00" means set PC to immediate from ProgAB
+					     -- PMAOp(2 downto 1): "00" means set PC to immediate from ProgDB
 					     --					   "01" means set PC to register Z
 					     --					   "10" means add PC to PCoffset and increment
 					     -- 				   "11" means set PC to DataDB (for RET and RETI)
