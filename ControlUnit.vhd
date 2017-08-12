@@ -107,12 +107,12 @@ begin
 		DMAOp <= "000"; -- DMAOp(2): "0" continue normally, "1" need to sum constant immediately (ex. LDD, STD) and post increment isn't soon enough
 						-- DMAOp(1): "0" use register, "1" use ProgDB 16 bit value
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
-		PMAOp <= "000"; -- PMAOp(2): active high enable 
-					    -- PMAOp(1): "0" means set PC to immediate, "1" means add PC to immediate
-					    -- PMAOp(0): if PMAOp(1) = "0", 
-					   		-- then PMAOp(1) = "0" means use immediate for new PC value
-					   		-- and PMAOp(1) = "1" means use ProgAB input for new PC value
-					   	  -- else if PMAOp(1) = "1", then ignore PMAOp(1)
+		PMAOp <= "0000"; -- PMAOp(3): ???
+					     -- PMAOp(2 downto 1): "00" means set PC to immediate from ProgAB
+					     --					   "01" means set PC to register Z
+					     --					   "10" means add PC to PCoffset and increment
+					     -- 				   "11" means set PC to DataDB (for RET and RETI)
+					     --	PMAOp(0): active high enable
 		PCoffset <= "000000000000"; -- immediate offset passed into PMA unit
         Read_Mem <= '1';	-- active low read signal
 		Write_Mem <= '1'; 	-- active low write signal

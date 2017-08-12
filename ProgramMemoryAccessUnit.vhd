@@ -93,7 +93,8 @@ end Component;
     type state is (
         CLK1,
         CLK2,
-        CLK3
+        CLK3,
+        CLK4
     );     
     signal CurrentState, NextState: state;
     
@@ -111,78 +112,42 @@ PCAdder: PCAddrAdder PORT MAP(
 
 -- Mux the actual address output depending on the bits in 
 -- AddrOpSel
-ProgAB  <=    AddedAddr when AddrOpSel(2) = '1' else
-			  ConstAddr when AddrOpSel(1) = '1' else
-			  AddedAddr when AddrOpSel(0) = '1' else
-              InputAddress; 
--- THe NewAddr is always the address post arithmetic.              
-NewAddr <=    AddedAddr;     
+ProgAB  <=    ProgDB when PMAOpSel(2 downto 1) = "00" else
+			  RegZ when PMAOpSel(2 downto 1) = "01" else
+			  OffsetPC when PMAOpSel(2 downto 1) = "10" else
+              DataDB when PMAOpSel(2 downto 1) = "11" else
+              ProgramCounter; 
+              
 
-
-
-    transition: process(CurrentState, WrIn, RdIn, Clock)
+    transition: process(CurrentState, Clock, Reset)
     begin
         case CurrentState is
-              -- CLK1 acts as the idle state, transition 
-                -- only when wrin or rdin signal is
-                -- asserted
             when CLK1 =>
-                if (WrIn = '0' or RdIn = '0') then
-                    NextState <= CLK2;
-                else
-                    NextState <= CLK1;
-                end if;
-                -- Most operations are 2 clks, else, 
-                -- AddrOpSel(1) is asserted
+                
             when CLK2 =>
-                if (AddrOpSel(1) = '1') then
-                    NextState <= CLK3;
-                else
-                    NextState <= CLK1; 
-                end if;
-                -- Only other state is Clk3, which
-                -- always transitions back to Idle
-               when others =>
+
+            when CLK3 =>
+                
+            when CLK4 =>
                     NextState <= CLK1;
+            when others =>
+
         end case;
     end process transition;
 
-    outputs: process (Clock, CurrentState)
+    outputs: process (Clock, CurrentState, Reset)
     begin
         case CurrentState is
-          -- DataWr/DataRd are never asserted
-          -- on the first clock, but on hte 
-          -- second half of the last clock
             when CLK1 =>
-                ConstAddr <= ProgDB;
-                    DataWr <= '1';
-                          DataRd <= '1';
-            when CLK2 =>
-                    --ConstAddr is manipulated for the three cycle
-                     -- instructions 
-                    ConstAddr <= ConstAddr;
-                     -- If clk = 0 and it is a two cycle instruction,
-                     -- then we assert the wanted DataW/R signal
-                if ((Clock = '0') and (AddrOpSel(1) = '0')) then 
-                    DataWr <= WrIn;
-                    DataRd <= RdIn;
-                    else
-                     -- else it is a 3 clock cycle or we are still in
-                     -- the first half of the clock
-                    DataWr <= '1';
-                          DataRd <= '1';                     
-                end if;
-                when CLK3 =>
-                     --ConstAddr is manipulated for the three cycle
-                     -- instructions 
-                     ConstAddr <= ConstAddr;
-                if (Clock = '0') then 
-                    DataWr <= WrIn;
-                    DataRd <= RdIn;
-                    else
-                    DataWr <= '1';
-                          DataRd <= '1';                     
-                end if;     
+
+            when CLK2 =>    
+
+            when CLK3 =>
+
+            when CLK4 =>
+
+            when others =>
+                     
         end case;
     end process outputs;
 
@@ -192,11 +157,5 @@ NewAddr <=    AddedAddr;
             CurrentState <= NextState;
         end if;
     end process storage;
-
-
-
-
-
-
     
 end architecture;
