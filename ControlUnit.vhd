@@ -72,7 +72,7 @@ entity  ControlUnit  is
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
 		RegMux 		     : out 	  std_logic_vector(1 downto 0);
 		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
-		PMAOp 			 : out    std_logic_vector(2 downto 0);
+		PMAOp 			 : out    std_logic_vector(4 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
         LDRImmed		 : out 	  std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
@@ -107,7 +107,10 @@ begin
 		DMAOp <= "000"; -- DMAOp(2): "0" continue normally, "1" need to sum constant immediately (ex. LDD, STD) and post increment isn't soon enough
 						-- DMAOp(1): "0" use register, "1" use ProgDB 16 bit value
 						-- DMAOp(0): "0" means add (post-inc), "1" means sub (pre-dec)
-		PMAOp <= "0000"; -- PMAOp(3): ???
+		PMAOp <= "00000"; -- PMAOp(4 downto 3): "00" means instruction lasts for 1 cycle
+					 	  -- 					"01" means instruction lasts for 2 cycles
+					 	  -- 					"10" means instruction lasts for 3 cycles
+					 	  -- 					"11" means instruction lasts for 4 cycles
 					     -- PMAOp(2 downto 1): "00" means set PC to immediate from ProgDB
 					     --					   "01" means set PC to register Z
 					     --					   "10" means add PC to PCoffset and increment
