@@ -87,6 +87,7 @@ end  ControlUnit;
 ------------------------------------------------------------------------
 architecture state_machine of ControlUnit is
     type state is (
+    	STALL3, -- stall for 3 cycles
     	STALL2, -- stall for 2 cycles
         STALL, -- do not fetch new instruction
         FETCH  -- fetch new instruction
@@ -1355,18 +1356,32 @@ If (std_match(InstructionOpCode, OpLDX)) then
 	transition: process(CurrentState, InstructionOpCode)
     begin
         case CurrentState is
+        	when STALL3 =>
+        		NextState <= FETCH;
         	when STALL2 =>
-        		NextState <= FETCH; -- stall for 2 states (used for 3 cycle instructions)
-            when STALL =>
-            	if ((std_match(InstructionOpCode, OpLDS)) or (std_match(InstructionOpCode, OpSTS))) then
-            		NextState <= STALL2;
+        		if ((std_match(InstructionOpCode, OpCALL)) or (std_match(InstructionOpCode, OpRET))
+        		   or (std_match(InstructionOpCode, OpRETI))) then
+            		NextState <= STALL2; -- stall for 3 states (used for 4 cycle instructions)
             	else
                 	NextState <= FETCH; -- if we have been waiting
 									-- then next cycle continue to fetch
-					END IF;
+				END IF;
+
+        		NextState <= FETCH; 
+            when STALL =>
+            	if ((std_match(InstructionOpCode, OpLDS)) or (std_match(InstructionOpCode, OpSTS))
+            	   or (std_match(InstructionOpCode, OpJMP)) or (std_match(InstructionOpCode, OpCALL))
+            	   or (std_match(InstructionOpCode, OpRCALL)) or (std_match(InstructionOpCode, OpICALL))
+            	   or (std_match(InstructionOpCode, OpRET)) or (std_match(InstructionOpCode, OpRETI))) then
+            		NextState <= STALL2; -- stall for 2 states (used for 3 cycle instructions)
+            	else
+                	NextState <= FETCH; -- if we have been waiting
+									-- then next cycle continue to fetch
+				END IF;
             when FETCH =>
-                if ((std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDXI)) or 
-					     (std_match(InstructionOpCode, OpLDXD)) or (std_match(InstructionOpCode, OpLDYI))
+                if (	(std_match(InstructionOpCode, OpADIW)) or (std_match(InstructionOpCode, OpSBIW))
+                		 or (std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDXI))
+					     or (std_match(InstructionOpCode, OpLDXD)) or (std_match(InstructionOpCode, OpLDYI))
 						 or (std_match(InstructionOpCode, OpLDYD)) or (std_match(InstructionOpCode, OpLDZI))
 						 or (std_match(InstructionOpCode, OpLDZD)) or (std_match(InstructionOpCode, OpLDDY))
 						 or (std_match(InstructionOpCode, OpLDDZ)) or (std_match(InstructionOpCode, OpSTX))
@@ -1375,8 +1390,12 @@ If (std_match(InstructionOpCode, OpLDX)) then
 						 or (std_match(InstructionOpCode, OpSTZI)) or (std_match(InstructionOpCode, OpSTZD))
 						 or (std_match(InstructionOpCode, OpSTDY)) or (std_match(InstructionOpCode, OpSTDZ))
 						 or (std_match(InstructionOpCode, OpLDS))  or (std_match(InstructionOpCode, OpSTS))
-						 or (std_match(InstructionOpCode, OpPUSH)) or (std_match(InstructionOpCode, OpPOP))) then
-                    NextState <= STALL; -- if instruction is one of the two cycle instructions, then stall
+						 or (std_match(InstructionOpCode, OpPUSH)) or (std_match(InstructionOpCode, OpPOP))
+						 or (std_match(InstructionOpCode, OpJMP)) or (std_match(InstructionOpCode, OpRJMP))
+						 or (std_match(InstructionOpCode, OpIJMP)) or (std_match(InstructionOpCode, OpCALL))
+						 or (std_match(InstructionOpCode, OpRCALL)) or (std_match(InstructionOpCode, OpICALL))
+						 or (std_match(InstructionOpCode, OpRET)) or (std_match(InstructionOpCode, OpRETI))) then
+                    NextState <= STALL; -- if instruction is one of the two/three cycle instructions, then stall
 										-- next cycle
 				 else
 					NextState <= FETCH; -- if only 1 cycle instruction, then continue fetching
@@ -1387,15 +1406,18 @@ If (std_match(InstructionOpCode, OpLDX)) then
     outputs: process (Clock, CurrentState)
     begin
         case CurrentState is
-         when FETCH =>
+         	when FETCH =>
                 FetchIR <= '1'; -- indicate whether to fetch from IR or wait
-					 CycCounter <= "00"; --indicate cycle number for 2 cycle instructions		  
-        	when STALL2 =>
+				CycCounter <= "00"; --indicate cycle number for 2 cycle instructions	
+			when STALL3 =>
+				FetchIR <= '0';
+				CycCounter <= "11";
+         	when STALL2 =>
         		FetchIR <= '0';
         		CycCounter <= "10";
-         when STALL =>
+         	when STALL =>
                 FetchIR <= '0'; -- indicate whether to fetch from IR or wait
-					 CycCounter <= "01"; --indicate cycle number for 2 cycle instructions
+			    CycCounter <= "01"; --indicate cycle number for 2 cycle instructions
         end case;
     
     end process outputs;
