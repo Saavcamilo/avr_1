@@ -88,17 +88,7 @@ Component Incrementer is
         LogicAddress: out std_logic_vector(15 downto 0)
           
     );
-end Component;
-
--- States of the FSM simply store the state of the access
-    type state is (
-        CLK1,
-        CLK2,
-        CLK3,
-        CLK4
-    );     
-    signal CurrentState, NextState: state;
-    
+end Component;    
 
 begin
 
@@ -120,43 +110,21 @@ NewPC   <=    ProgDB when PMAOpSel(2 downto 1) = "00" else
               ProgramCounter; 
 
 
-    transition: process(CurrentState, Clock, Reset)
+    process(Clock, Reset)
     begin
-        case CurrentState is
-            when CLK1 =>
-                
-            when CLK2 =>
-
-            when CLK3 =>
-                
-            when CLK4 =>
-                    NextState <= CLK1;
-            when others =>
-
-        end case;
-    end process transition;
-
-    outputs: process (Clock, CurrentState, Reset)
-    begin
-        case CurrentState is
-            when CLK1 =>
-
-            when CLK2 =>    
-
-            when CLK3 =>
-
-            when CLK4 =>
-
-            when others =>
-                     
-        end case;
-    end process outputs;
-
-    storage: process (Clock)
-    begin
-        if (rising_edge(Clock)) then
-            CurrentState <= NextState;
+        if Reset = '0' then -- reset ProgramCounter, IncrementedPC, OffsetPC, and NewPC
+                            -- to lowest value
+            ProgramCounter <= "0000000000000000";
+            IncrementedPC <= "0000000000000000";
+            OffsetPC <= "0000000000000000";
+            NewPC <= "0000000000000000";
+        elsif rising_edge(Clock) and PMAOpSel(0) = '1' then --Rising edge and enable 
+            ProgramCounter <= NewPC;    -- signal is asserted
         end if;
-    end process storage;
+    end process;
+
+
+ProgAB <= ProgramCounter;
+
     
 end architecture;
