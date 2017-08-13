@@ -47,7 +47,7 @@ entity ProgramMemoryAccessUnit is
         Reset     :     in   std_logic;
         
         Offset    :     in   std_logic_vector(11 downto 0);
-        PMAOpSel  :     in   std_logic_vector(4 downto 0);
+        PMAOpSel  :     in   std_logic_vector(2 downto 0);
 
         DataDB    :     in   std_logic_vector(7 downto 0); -- needed for RET, RETI
 
