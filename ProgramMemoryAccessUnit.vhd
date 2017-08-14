@@ -39,6 +39,8 @@ use ieee.numeric_std.all;
 --  Revision History:
 --     31 Mar 17  Camilo Saavedra     Initial revision.
 --     10 Aug 17  Anant Desai         Began implementing PC functionality
+--     13 Aug 17  Anant Desai         Created State Machine for RET, RETI
+--                                    instruction outputs
 ----------------------------------------------------------------------------
 entity ProgramMemoryAccessUnit is
     port(
@@ -90,6 +92,15 @@ Component Incrementer is
     );
 end Component;    
 
+
+-- States of the FSM simply store the state of the access
+    type state is (
+        CLK1,
+        CLK2
+    );     
+    signal CurrentState, NextState: state;
+
+
 begin
 
 PCIncrementer: Incrementer PORT MAP(
@@ -106,25 +117,65 @@ PCAdder: PCAddrAdder PORT MAP(
 NewPC   <=    ProgDB when PMAOpSel(2 downto 1) = "00" else
 			  RegZ when PMAOpSel(2 downto 1) = "01" else
 			  OffsetPC when PMAOpSel(2 downto 1) = "10" else
-              DataDB when PMAOpSel(2 downto 1) = "11" else
+              -- DataDB when PMAOpSel(2 downto 1) = "11" else
               ProgramCounter; 
 
 
-    process(Clock, Reset)
-    begin
-        if Reset = '0' then -- reset ProgramCounter, IncrementedPC, OffsetPC, and NewPC
-                            -- to lowest value
-            ProgramCounter <= "0000000000000000";
-            IncrementedPC <= "0000000000000000";
-            OffsetPC <= "0000000000000000";
-            NewPC <= "0000000000000000";
-        elsif rising_edge(Clock) and PMAOpSel(0) = '1' then --Rising edge and enable 
-            ProgramCounter <= NewPC;    -- signal is asserted
-        end if;
-    end process;
-
-
 ProgAB <= ProgramCounter;
+
+
+    transition: process(CurrentState, Clock, Reset)
+    begin
+        case CurrentState is
+            when CLK1 =>
+                IF PMAOpSel = "111" then
+                    NextState <= CLK2; -- only if using RET, RETI then we need 2 
+                                       -- cycles to put things on the PC
+                ELSE
+                    NextState <= CLK1;
+                END IF;
+                
+            when CLK2 =>
+                NextState <= CLK1;
+
+            when others =>
+                NextState <= CLK1;
+
+        end case;
+    end process transition;
+
+    outputs: process (Clock, CurrentState, Reset)
+    begin
+        case CurrentState is
+            when CLK1 =>
+                IF Reset = '0' then -- reset ProgramCounter, IncrementedPC, OffsetPC, and NewPC
+                                    -- to lowest value
+                    ProgramCounter <= "0000000000000000";
+                    IncrementedPC <= "0000000000000000";
+                    OffsetPC <= "0000000000000000";
+                    NewPC <= "0000000000000000";
+                ELSIF PMAOpSel = "111" then
+                    ProgramCounter(15 downto 8) <= DataDB;
+                ELSIF rising_edge(Clock) and PMAOpSel(0) = '1' then
+                    ProgramCounter <= NewPC;
+                END IF;
+
+            when CLK2 =>    
+                ProgramCounter(7 downto 0) <= DataDB;
+
+            when others =>
+                     
+        end case;
+    end process outputs;
+
+    storage: process (Clock)
+    begin
+        if (rising_edge(Clock)) then
+            CurrentState <= NextState;
+        end if;
+    end process storage;
+
+
 
     
 end architecture;

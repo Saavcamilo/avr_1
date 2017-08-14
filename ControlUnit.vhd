@@ -51,6 +51,11 @@ use opcodes.opcodes.all;
 --								    manipulations
 -- 	    9 Aug 17  Anant Desai 		added output signal to mux register input
 --									between alu output and data bus 
+--	   13 Aug 17  Anant Desai 		Added Instruction Decoding for Unconditional
+--									branches
+--     14 Aug 17  Anant Desai 		Updated all previous instruction decoding to
+--									include incrementing the PC during last
+--									cycle of instruction
 ----------------------------------------------------------------------------
 
 entity  ControlUnit  is
@@ -146,6 +151,10 @@ begin
 			OpSel(7 downto 2) <= InstructionOpCode(5 downto 0);
 			 OpSel(1 downto 0) <= "00";
 			FlagMask <= "00011111"; --indicates which bits to change in status register
+
+			
+			PMAOp <= "101"; -- increment PC by 1
+			PCoffset <= "000000000000";
 		 END IF;
 		If (std_match(InstructionOpCode, OpLSR)) then 
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -157,6 +166,9 @@ begin
 			OpSel(7 downto 2) <= InstructionOpCode(5 downto 0);
 			OpSel(1 downto 0) <= "00";
 			FlagMask <= "00011111"; --indicates which bits to change in status register
+
+			PMAOp <= "101"; -- increment PC by 1
+			PCoffset <= "000000000000";
 		 END IF;
 		If (std_match(InstructionOpCode, OpROR)) then 
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -168,6 +180,9 @@ begin
 			OpSel(7 downto 2) <= InstructionOpCode(5 downto 0);
 			OpSel(1 downto 0) <= "00";
 			FlagMask <= "00011111"; --indicates which bits to change in status register
+
+			PMAOp <= "101"; -- increment PC by 1
+			PCoffset <= "000000000000";
 		 END IF;
 		If (std_match(InstructionOpCode, OpSWAP)) then 
 			RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -178,6 +193,9 @@ begin
 			OpSel(9 downto 8) <= "10";
 			OpSel(3 downto 0) <= "0000";
 			FlagMask <= "00000000"; --indicates which bits to change in status register
+
+			PMAOp <= "101"; -- increment PC by 1
+			PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpADC)) then 
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -190,6 +208,9 @@ begin
 			  -- opcode to ALU 
 			  OpSel <= "1100000010";
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpADD)) then
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -201,6 +222,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1100000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpAND)) then 
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -212,6 +236,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "0100100000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpANDI)) then 
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -226,6 +253,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "0110100000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 
 		 If (std_match(InstructionOpCode, OpBCLR)) then 
@@ -243,14 +273,16 @@ begin
 			  RegMux <= "000"; -- ALU output doesn't go into register
 			  OpSel <= "0110100001"; -- opcode to ALU 
 			  FlagMask <= "11111111"; --indicates which bits to change in status register
-		 END IF;
 
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
+		 END IF;
 		 If (std_match(InstructionOpCode, OpBLD)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
 			  RegisterSel <= InstructionOpCode(8 downto 4);  -- register to write_Mem output to
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
 			  if Flags(6) = '0' then
-           case InstructionOpCode(2 downto 0) is --decode which bit of register to load
+           	  	case InstructionOpCode(2 downto 0) is --decode which bit of register to load
 					when "000" => Immediate <=  "11111110";
 					when "001" => Immediate <=  "11111101";
 					when "010" => Immediate <=  "11111011";
@@ -259,11 +291,11 @@ begin
 					when "101" => Immediate <=  "11011111";
 					when "110" => Immediate <=  "10111111";
 					when others => Immediate <= "01111111";
-			      end case;
-               OpSel <= "0110100000"; -- opcode to ALU 
+			   	end case;
+                OpSel <= "0110100000"; -- opcode to ALU 
 			  else
-               case InstructionOpCode(2 downto 0) is
-               when "000" => Immediate <=  "00000001"; --decode which bit of register to load
+               	case InstructionOpCode(2 downto 0) is
+               	when "000" => Immediate <=  "00000001"; --decode which bit of register to load
 					when "001" => Immediate <=  "00000010";
 					when "010" => Immediate <=  "00000100";
 					when "011" => Immediate <=  "00001000";
@@ -271,13 +303,15 @@ begin
 					when "101" => Immediate <=  "00100000";
 					when "110" => Immediate <=  "01000000";
 					when others => Immediate <= "10000000";
-			  end case;
+			  	end case;
 			  OpSel <= "0110111000"; -- opcode to ALU 
 			  END IF;
 			  RegMux <= "100"; -- ALU output goes into register input
 			  FlagMask <= "00000000"; --indicates which bits to change in status register
-		 END IF;
 
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
+		 END IF;
 		 If (std_match(InstructionOpCode, OpBSET)) then 
 			  RegisterEn <= '0'; -- do not write output of ALU to register
            case InstructionOpCode(6 downto 4) is --decode which bit of stat reg to set
@@ -293,8 +327,10 @@ begin
 			  RegMux <= "000"; -- ALU output does not go into register
 			  OpSel <= "0110111001"; -- opcode to ALU 
 			  FlagMask <= "11111111"; --indicates which bits to change in status register
-		 END IF;
 
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
+		 END IF;
 		 If (std_match(InstructionOpCode, OpBST)) then 
 			  RegisterEn <= '0'; -- do not write output of ALU to register
 			  RegisterASel <= InstructionOpCode(8 downto 4); -- register to extract operand from
@@ -311,8 +347,10 @@ begin
 			  RegMux <= "000"; -- ALU output does not go into register
 			  OpSel <= "0110100000"; -- opcode to ALU 
 			  FlagMask <= "01000000"; --indicates which bits to change in status register
-		 END IF;
 
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
+		 END IF;
 		 If (std_match(InstructionOpCode, OpCOM)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
 			  RegisterSel <= InstructionOpCode(8 downto 4); -- register to write_Mem output to
@@ -320,6 +358,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "0100001100"; -- opcode to ALU 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCP)) then 
 			  RegisterEn <= '0'; -- do not write output of ALU to register
@@ -330,6 +371,9 @@ begin
 			  RegMux <= "000"; -- ALU output does not go into register input
 			  OpSel <= "1101000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCPC)) then 
 			  RegisterEn <= '0'; -- do not write output of ALU to register
@@ -340,6 +384,9 @@ begin
 			  RegMux <= "000"; -- ALU output does not go into register input
 			  OpSel <= "1101000110"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCPI)) then 
 			  RegisterEn <= '0'; -- do not write output of ALU to register
@@ -351,6 +398,9 @@ begin
 			  RegMux <= "000"; -- ALU output does not go into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpDEC)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -360,6 +410,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpEOR)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -371,6 +424,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "0100011000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpINC)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -380,6 +436,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1110000000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpNEG)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -389,6 +448,9 @@ begin
 			  OpSel <= "1101000001"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
               Immediate <= "00000000";
+
+              PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpOR)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -400,6 +462,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "0100111000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpORI)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -414,6 +479,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "0110111000"; -- opcode to ALU 
 			  FlagMask <= "00011110"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBC)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -425,6 +493,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1101000010"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBCI)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -439,6 +510,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1111000010"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		If (std_match(InstructionOpCode, OpSUB)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -450,6 +524,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1101000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSUBI)) then 
 			  RegisterEn <= '1'; -- write output of ALU to register
@@ -464,6 +541,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00111111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpADIW)) then 
 		 
@@ -484,6 +564,9 @@ begin
 			  RegMux <= "100"; -- ALU output goes into register input
 			  OpSel <= "1110000000"; -- opcode to ALU 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
+
+			  PMAOp <= "100"; -- set up signals to increment PC by 1
+			  PCoffset <= "000000000000";
 			else  -- then add 1 to higher num register if carry flag set
 			
 			  RegisterEn <= '1'; -- write_Mem output of ALU to register
@@ -505,6 +588,8 @@ begin
 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
 			
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 			END IF;
 
 		 END IF;
@@ -529,6 +614,9 @@ begin
 			  OpSel <= "1111000000"; -- opcode to ALU 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
 
+			  PMAOp <= "100"; -- set up signals to increment PC by 1
+			  PCoffset <= "000000000000";
+
 			else  -- then subtract 1 from higher num register if borrow flag set
 			  RegisterEn <= '1';  -- write_Mem output of ALU to register
 			   -- register to write_Mem output to
@@ -548,6 +636,9 @@ begin
 			  OpSel <= "1111000100"; -- opcode to ALU
 
 			  FlagMask <= "00011111"; --indicates which bits to change in status register
+
+			  PMAOp <= "101"; -- increment PC by 1
+			  PCoffset <= "000000000000";
 			
 			END IF;
 		 	
@@ -565,7 +656,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -576,6 +670,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDXI)) then 
@@ -590,7 +687,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -601,6 +701,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDXD)) then 
@@ -615,7 +718,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -626,6 +732,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDYI)) then 
@@ -640,7 +749,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -651,6 +763,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDYD)) then 
@@ -665,7 +780,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -676,6 +794,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDZI)) then 
@@ -690,7 +811,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -701,6 +825,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDZD)) then 
@@ -715,7 +842,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -726,6 +856,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDDY)) then 
@@ -742,7 +875,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -755,6 +891,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDDZ)) then 
@@ -771,7 +910,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -784,6 +926,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+			    PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDI)) then 
@@ -797,6 +942,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	Read_Mem <= '1'; -- we are not reading (to memory)
 		 	Write_Mem <= '1'; -- we are not writing (to memory)
 		 	FlagMask <= "00000000"; -- don't change any flags
+
+		 	PMAOp <= "101"; -- increment PC by 1
+			PCoffset <= "000000000000";
 		 END IF;
 		 If (std_match(InstructionOpCode, OpLDS)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
@@ -808,7 +956,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second and third cycles, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSIF (cycCounter = "01") THEN -- for the second cycle
 		 		RegisterEn <= '1';	-- write_Mem to register
 		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		Immediate <= "00000000";
@@ -817,6 +968,21 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '0'; -- we are reading
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSIF (cycCounter = "01") THEN -- for the third cycle 
+		 		RegisterEn <= '1';	-- write_Mem to register
+		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		Immediate <= "00000000";
+		 		RegMux <= "110"; -- DMA data bus connects to register input
+		 		DMAOp <= "010";
+		 		Read_Mem <= '0'; -- we are reading
+		 		Write_Mem <= '1'; -- we are not writing
+		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpMOV)) then 
@@ -830,6 +996,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			OpSel <= "0110100000"; -- opcode to ALU, AND with immediate (all 1's) and store
 									-- result in new register
 			FlagMask <= "00000000"; --indicates which bits to change in status register
+
+			PMAOp <= "101"; -- increment PC by 1
+			PCoffset <= "000000000000";
 		 
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSTX)) then 
@@ -844,7 +1013,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -855,6 +1027,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not read
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -870,7 +1045,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not read
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -881,6 +1059,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are reading
 		 		Write_Mem <= '0'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -896,7 +1077,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -907,6 +1091,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -922,7 +1109,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not read
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -933,6 +1123,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -948,7 +1141,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -959,6 +1155,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -974,7 +1173,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -985,6 +1187,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -1000,7 +1205,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not read
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -1011,6 +1219,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -1028,7 +1239,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -1041,6 +1255,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -1058,7 +1275,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second cycle, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
@@ -1071,6 +1291,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -1084,7 +1307,10 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- for the second and third cycles, keep the signals as they are
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSIF (cycCounter = "01") THEN -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
 		 		Immediate <= "00000000";
@@ -1093,6 +1319,21 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Read_Mem <= '1'; -- we are not reading
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
+		 	ELSE -- for the third cycle
+		 		RegisterEn <= '0';	-- don't write to register
+		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		Immediate <= "00000000";
+		 		RegMux <= "110"; -- DMA data bus connects to register output
+		 		DMAOp <= "010";
+		 		Read_Mem <= '1'; -- we are not reading
+		 		Write_Mem <= '0'; -- we are writing
+		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 
 		 END IF;
@@ -1103,14 +1344,18 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegMux <= "110"; -- DMA data bus connects to register input
 		 		PushPop <= "00";
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
 		 	ELSE -- set PushPop signal to enabled
 		 		RegisterEn <= '1';	-- write to register
 		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		RegMux <= "110"; -- DMA data bus connects to register input
 		 		PushPop <= "01";
-		 		
-		 		
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpPUSH)) then 
@@ -1119,15 +1364,18 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		RegMux <= "110"; -- DMA data bus connects to register output
 		 		PushPop <= "10";
-		 		
 		 		FlagMask <= "00000000"; -- don't change any flags
+
+		 		PMAOp <= "100"; -- set up signals to increment PC by 1
+			    PCoffset <= "000000000000";
 		 	ELSE -- set PushPop signal to enabled
 		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		RegMux <= "110"; -- DMA data bus connects to register output
 		 		PushPop <= "11";
-
 		 		FlagMask <= "00000000"; -- don't change any flags
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpJMP)) then 
