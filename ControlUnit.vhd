@@ -56,6 +56,13 @@ use opcodes.opcodes.all;
 --     14 Aug 17  Anant Desai 		Updated all previous instruction decoding to
 --									include incrementing the PC during last
 --									cycle of instruction
+--	   15 Aug 17  Anant Desai 		Added instruction decoding for conditional
+--									branching instructions
+--	   15 Aug 17  Anant Desai 		Completed instruction decoding for skip
+--									instructions
+--									Added TransferFlag input
+--									Modified state machine to account for 
+--									variable length skip instructions
 ----------------------------------------------------------------------------
 
 entity  ControlUnit  is
@@ -65,7 +72,9 @@ entity  ControlUnit  is
         InstructionOpCode :  in  opcode_word; 
         Flags            :  in  std_logic_vector(7 downto 0);	
         ZeroFlag 		 :  in  std_logic;
+        TransferFlag 	 :  in  std_logic;
         IRQ 			 :  in  std_logic_vector(7 downto 0);
+        ProgDB 			 :  in  std_logic_vector(15 downto 0);
 
         FetchIR          : out 	  std_logic; 
         PushPop 		 : out    std_logic_vector(1 downto 0);
@@ -1601,55 +1610,123 @@ If (std_match(InstructionOpCode, OpLDX)) then
 
 		 	END IF;
 		 END IF;
-		 If (std_match(InstructionOpCode, OpCPSE)) then 
-		 	IF(cycCounter = "00") then -- for cycles 1 
-		 		RegisterEn <= '0';	-- write_Mem to register
+		 If (std_match(InstructionOpCode, OpCPSE)) then
+		 	IF(cycCounter = "00") then -- for cycles 1, perform CP instruction
+		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "10";
-		 		
-		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "11";
+		 		RegisterBSel(4) <= InstructionOpCode(9);
+		 		RegisterBSel(3 downto 0) <= InstructionOpCode(3 downto 0);
+		 		RegMux <= "000"; --- ALU output does not go into register input
+		 		OpSel <= "1101000000"; --opcode to ALU
+		 		FlagMask <= "00000000"; -- don't change status register
 
-		 		FlagMask <= "00000000"; -- don't change any flags
+		 		-- increment PC by 1, but the state machine will go to a stall state
+		 		-- if the ZeroFlag is set, so that the IR won't be updated with the
+		 		-- new instruction, but rather the new instruction will just be
+		 		-- present on the ProgDB (so we will still be on the CPSE instruction)
+		 			-- note, we do this to determine how many words the instruction
+		 			-- to be skipped is
+	 			PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+		 		
+		 	ELSIF(cycCounter = "01") THEN -- 2nd cycle, which means we are going to skip
+		 							 	  -- the following instruction
+			 	PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+
+		 	ELSIF(cycCounter = "10") THEN -- 3rd cycle, which means the instruction
+		 								  -- to be skipped was a 2 word instruction
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+		 	
+		 	ELSE -- this shouldn't execute
+
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBRC)) then 
-		 	IF(cycCounter = "00") then -- for cycles 1 
-		 		RegisterEn <= '0';	-- write_Mem to register
+		 	IF(cycCounter = "00") then -- for cycles 1, perform BST instruction
+		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		
-		 		PushPop <= "10";
-		 		
-		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "11";
+		 		case InstructionOpCode(2 downto 0) is -- decode which bit of register to extract
+					when "000" => Immediate <=  "00000001";
+					when "001" => Immediate <=  "00000010";
+					when "010" => Immediate <=  "00000100";
+					when "011" => Immediate <=  "00001000";
+					when "100" => Immediate <=  "00010000";
+					when "101" => Immediate <=  "00100000";
+					when "110" => Immediate <=  "01000000";
+					when others => Immediate <= "10000000";
+			  	end case;
 
-		 		FlagMask <= "00000000"; -- don't change any flags
+		 		RegMux <= "000"; --- ALU output does not go into register input
+		 		OpSel <= "0110100000"; --opcode to ALU
+		 		FlagMask <= "00000000"; -- don't change status register
+
+		 		-- increment PC by 1, but the state machine will go to a stall state
+		 		-- if the TransferFlag is cleared, so that the IR won't be updated with the
+		 		-- new instruction, but rather the new instruction will just be
+		 		-- present on the ProgDB (so we will still be on the SBRC instruction)
+		 			-- note, we do this to determine how many words the instruction
+		 			-- to be skipped is
+	 			PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+		 		
+		 	ELSIF(cycCounter = "01") THEN -- 2nd cycle, which means we are going to skip
+		 							 	  -- the following instruction
+			 	PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+
+		 	ELSIF(cycCounter = "10") THEN -- 3rd cycle, which means the instruction
+		 								  -- to be skipped was a 2 word instruction
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+		 	
+		 	ELSE -- this shouldn't execute
+
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBRS)) then 
-		 	IF(cycCounter = "00") then -- for cycles 1 
-		 		RegisterEn <= '0';	-- write_Mem to register
+		 	IF(cycCounter = "00") then -- for cycles 1, perform BST instruction
+		 		RegisterEn <= '0';	-- don't write to register
 		 		RegisterASel <= InstructionOpCode(8 downto 4);
 		 		
-		 		PushPop <= "10";
-		 		
-		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "11";
+		 		case InstructionOpCode(2 downto 0) is -- decode which bit of register to extract
+					when "000" => Immediate <=  "00000001";
+					when "001" => Immediate <=  "00000010";
+					when "010" => Immediate <=  "00000100";
+					when "011" => Immediate <=  "00001000";
+					when "100" => Immediate <=  "00010000";
+					when "101" => Immediate <=  "00100000";
+					when "110" => Immediate <=  "01000000";
+					when others => Immediate <= "10000000";
+			  	end case;
 
-		 		FlagMask <= "00000000"; -- don't change any flags
+		 		RegMux <= "000"; --- ALU output does not go into register input
+		 		OpSel <= "0110100000"; --opcode to ALU
+		 		FlagMask <= "00000000"; -- don't change status register
+
+		 		-- increment PC by 1, but the state machine will go to a stall state
+		 		-- if the TransferFlag is set, so that the IR won't be updated with the
+		 		-- new instruction, but rather the new instruction will just be
+		 		-- present on the ProgDB (so we will still be on the SBRC instruction)
+		 			-- note, we do this to determine how many words the instruction
+		 			-- to be skipped is
+	 			PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+		 		
+		 	ELSIF(cycCounter = "01") THEN -- 2nd cycle, which means we are going to skip
+		 							 	  -- the following instruction
+			 	PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+
+		 	ELSIF(cycCounter = "10") THEN -- 3rd cycle, which means the instruction
+		 								  -- to be skipped was a 2 word instruction
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+		 	
+		 	ELSE -- this shouldn't execute
+
 		  	END IF;
 		 END IF;
 
@@ -1676,13 +1753,16 @@ If (std_match(InstructionOpCode, OpLDX)) then
             	   or (std_match(InstructionOpCode, OpRCALL)) or (std_match(InstructionOpCode, OpICALL))
             	   or (std_match(InstructionOpCode, OpRET)) or (std_match(InstructionOpCode, OpRETI))) then
             		NextState <= STALL2; -- stall for 2 states (used for 3 cycle instructions)
+            	elsif ((std_match(InstructionOpCode, OpCPSE) or std_match(InstructionOpCode, OpSBRC) or std_match(InstructionOpCode, OpSBRS)) and 
+            		   (std_match(ProgDB, OpLDS) or std_match(ProgDB, OpSTS) or std_match(ProgDB, OpJMP) or std_match(ProgDB, OpCALL))) then
+            		NextState <= STALL2; -- keep stalling if instruction to be skipped is 2 word instruction
             	else
                 	NextState <= FETCH; -- if we have been waiting
 									-- then next cycle continue to fetch
 				END IF;
             when FETCH =>
-                if (	(std_match(InstructionOpCode, OpADIW)) or (std_match(InstructionOpCode, OpSBIW))
-                		 or (std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDXI))
+	            if (	(std_match(InstructionOpCode, OpADIW)) or (std_match(InstructionOpCode, OpSBIW))
+	            		 or (std_match(InstructionOpCode, OpLDX)) or (std_match(InstructionOpCode, OpLDXI))
 					     or (std_match(InstructionOpCode, OpLDXD)) or (std_match(InstructionOpCode, OpLDYI))
 						 or (std_match(InstructionOpCode, OpLDYD)) or (std_match(InstructionOpCode, OpLDZI))
 						 or (std_match(InstructionOpCode, OpLDZD)) or (std_match(InstructionOpCode, OpLDDY))
@@ -1699,11 +1779,19 @@ If (std_match(InstructionOpCode, OpLDX)) then
 						 or (std_match(InstructionOpCode, OpRET)) or (std_match(InstructionOpCode, OpRETI))) then
                     NextState <= STALL; -- if instruction is one of the two/three cycle instructions, then stall
 										-- next cycle
+
 				 elsif ((std_match(InstructionOpCode, OpBRBC) and Flags(InstructionOpCode(2 downto 0)) = '0')
 				 		or (std_match(InstructionOpCode, OpBRBS) and Flags(InstructionOpCode(2 downto 0)) = '1')) then
 				 	NextState <= STALL; -- conditional branch instructions have variable length cycles
+
+				 elsif ((std_match(InstructionOpCode, OpCPSE) and ZeroFlag = '1') 
+				 	   or (std_match(InstructionOpCode, OpSBRC) and TransferFlag = '0')
+				 	   or (std_match(InstructionOpCode, OpSBRS) and TransferFlag = '1')) then
+				 	NextState <= STALL; -- skip instructions have variable length cycles
+
 				 else
 					NextState <= FETCH; -- if only 1 cycle instruction, then continue fetching
+
                 END IF;
         end case;
     end process transition;

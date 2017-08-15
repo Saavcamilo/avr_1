@@ -37,10 +37,13 @@ use opcodes.all;
 --                                  - StatReg(6): transfer bit
 --                                  - StatReg(7): interrupt flag
 --      ZeroFlag                - zero flag (going to control unit)
+--      TransferFlag            - transfer bit flag (going to control unit)
 --
 --  Revision History:
 --     25 Jan 17  Camilo Saavedra     Initial revision.
 --      7 Aug 17  Anant Desai         Added Zero Flag output for CPSE instruction
+--     15 Aug 17  Anant Desai         Added Transfer Flag output for SBRC,SBRS 
+--                                      instructions
 --
 ----------------------------------------------------------------------------
 
@@ -173,6 +176,7 @@ NegatedMask <= not FlagMask;
 StatusReg <= FBlockOutput when OperandSel(0) = '1' and OperandSel(7) = '1' else
           (FlagMask and CalcFlag) or (NegatedMask and Flag);   
 ZeroFlag <= StatusReg(1);
+TransferFlag <= StatusReg(6);
 StatReg <= StatusReg;
 Output <= Result;
 end architecture;
