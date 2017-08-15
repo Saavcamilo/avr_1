@@ -1564,38 +1564,42 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpBRBC)) then 
-		 	IF(cycCounter = "00") then -- for cycles 1 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "10";
-		 		
-		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "11";
+		 	IF (Flags(InstructionOpCode(2 downto 0)) = '0') then -- take branch
+		 		IF(cycCounter = "00") then -- for cycle 1 
+			 		PMAOp <= "100"; -- set up signals for adding PC to passed immediate
+			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
+			 		PCoffset(11 downto 7) <= "00000";
 
-		 		FlagMask <= "00000000"; -- don't change any flags
-		  	END IF;
+		 		ELSEIF(cycCounter = "01") then -- 2nd cycle
+			 		PMAOp <= "101"; -- update PC
+			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
+			 		PCoffset(11 downto 7) <= "00000";
+
+		 	ELSE -- don't take branch, increment PC normally
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+
+		 	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpBRBS)) then 
-		 	IF(cycCounter = "00") then -- for cycles 1 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "10";
-		 		
-		 		FlagMask <= "00000000"; -- don't change any flags
-		 	ELSE -- 
-		 		RegisterEn <= '0';	-- write_Mem to register
-		 		RegisterASel <= InstructionOpCode(8 downto 4);
-		 		
-		 		PushPop <= "11";
+		 	IF (Flags(InstructionOpCode(2 downto 0)) = '1') then -- take branch
+		 		IF(cycCounter = "00") then -- for cycle 1 
+			 		PMAOp <= "100"; -- set up signals for adding PC to passed immediate
+			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
+			 		PCoffset(11 downto 7) <= "00000";
 
-		 		FlagMask <= "00000000"; -- don't change any flags
-		  	END IF;
+		 		ELSEIF(cycCounter = "01") then -- 2nd cycle
+			 		PMAOp <= "101"; -- update PC
+			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
+			 		PCoffset(11 downto 7) <= "00000";
+
+		 	ELSE -- don't take branch, increment PC normally
+
+		 		PMAOp <= "101"; -- increment PC by 1
+				PCoffset <= "000000000000";
+
+		 	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpCPSE)) then 
 		 	IF(cycCounter = "00") then -- for cycles 1 
@@ -1695,6 +1699,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 						 or (std_match(InstructionOpCode, OpRET)) or (std_match(InstructionOpCode, OpRETI))) then
                     NextState <= STALL; -- if instruction is one of the two/three cycle instructions, then stall
 										-- next cycle
+				 elsif ((std_match(InstructionOpCode, OpBRBC) and Flags(InstructionOpCode(2 downto 0)) = '0')
+				 		or (std_match(InstructionOpCode, OpBRBS) and Flags(InstructionOpCode(2 downto 0)) = '1')) then
+				 	NextState <= STALL; -- conditional branch instructions have variable length cycles
 				 else
 					NextState <= FETCH; -- if only 1 cycle instruction, then continue fetching
                 END IF;
