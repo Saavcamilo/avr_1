@@ -41,6 +41,7 @@ use ieee.numeric_std.all;
 --     4  Jun 17  Camilo Saavedra     Fixed error with the FSM that controls 
 --                                    the signals
 --     5  Jul 17  Camilo Saavedra     Fixed bug
+--    16  Aug 17  Anant Desai         Added Stack Pointer output capability
 ----------------------------------------------------------------------------
 entity DataMemoryAccessUnit is
     port(
@@ -94,7 +95,8 @@ AddrAdder: AddressAdder PORT MAP(
     LogicAddress => AddedAddr);
 -- Mux the actual address output depending on the bits in 
 -- AddrOpSel
-DataAB  <=    AddedAddr when AddrOpSel(2) = '1' else
+DataAB  <=    SP        when StackOp(0) = '1' else
+              AddedAddr when AddrOpSel(2) = '1' else
 			  ConstAddr when AddrOpSel(1) = '1' else
 			  AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
@@ -137,7 +139,7 @@ NewAddr <=    AddedAddr;
             when CLK1 =>
 				ConstAddr <= ProgDB;
                     DataWr <= '1';
-						  DataRd <= '1';
+					DataRd <= '1';
             when CLK2 =>
 				    --ConstAddr is manipulated for the three cycle
 					 -- instructions 
@@ -162,7 +164,7 @@ NewAddr <=    AddedAddr;
                     DataRd <= RdIn;
 				    else
                     DataWr <= '1';
-						  DataRd <= '1';					 
+					DataRd <= '1';					 
                 end if;		
         end case;
     end process outputs;
