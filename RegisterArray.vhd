@@ -40,6 +40,7 @@ use opcodes.opcodes.all;
 --  Revision History:
 --     25 Jan 17  Camilo Saavedra     Initial revision.
 --     6  May 17  Camilo Saavedra     Added memory access register functionality
+--    16  Aug 17  Anant Desai         Updated RegMux signal
 --
 ----------------------------------------------------------------------------
 entity  RegisterArray  is
@@ -47,13 +48,13 @@ entity  RegisterArray  is
     port(
         clock    :  in  std_logic;                          -- system clock
         Enable   :  in  std_logic;       							-- Enables the registers 
-        RegMux   :  in  std_logic(1 downto 0);
+        RegMux   :  in  std_logic(2 downto 0);
         Selects  :  in  std_logic_vector(4 downto 0);       -- Selects output register
         RegASel  :  in  std_logic_vector(4 downto 0);
         RegBSel  :  in  std_logic_vector(4 downto 0);
         ALUInput :  in  std_logic_vector(7 downto 0);       -- input register bus
-		  MemInput :  in  std_logic_vector(7 downto 0);
-		  
+		MemInput :  in  std_logic_vector(7 downto 0);
+	    
         Immediate:  in  std_logic_vector(7 downto 0);
         RegXYZEn :  in  std_logic;
         RegXYZSel:  in  std_logic_vector(1 downto 0);
@@ -63,7 +64,7 @@ entity  RegisterArray  is
         RegAOut  :  out std_logic_vector(7 downto 0);       -- register bus A out
         RegBOut  :  out std_logic_vector(7 downto 0);       -- register bus B out
         RegXYZOut:  out std_logic_vector(15 downto 0);
-		  RegZOut  :  out std_logic_vector(15 downto 0)       -- output used for IJMP
+		RegZOut  :  out std_logic_vector(15 downto 0)       -- output used for IJMP
     );
 end  RegisterArray;
 
@@ -139,7 +140,7 @@ architecture Registers of RegisterArray is
     end component;
 
 begin 
-   RegZOut(7 downto 0)  <= Q30;
+    RegZOut(7 downto 0)  <= Q30;
 	RegZOut(15 downto 8) <= Q31; 
     -- Following statements are the logic that drive the  
 	 -- select signal when a RegXYZ select signal is 
@@ -192,9 +193,9 @@ begin
 
     -- Chose which register input is used
     with RegMux   select RegIn <=
-        Immediate when "00",
-		  MemInput  when "10",
-        ALUInput  when "11";
+        Immediate when "000",
+		MemInput  when "110",
+        ALUInput  when "100";
         
     -- Select decoder generates 32 select lines from the 5 bit input.
     Sel_Decoder: Decoder32Bit PORT MAP(
