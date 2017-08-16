@@ -14,7 +14,7 @@ use ieee.numeric_std.all;
 --  Inputs:
 --      Clock            - the system clock
 --      StackOp          - encodes whether we want to push or pop
---      Reset            - sets the pointer to FFFFFFFF
+--      Reset            - sets the pointer to 11111111
 --  Outputs:
 --      SPout            - contains the address of the stack pointer after 
 --                         the push or pop operation
