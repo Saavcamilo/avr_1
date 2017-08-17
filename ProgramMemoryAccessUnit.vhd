@@ -53,7 +53,7 @@ entity ProgramMemoryAccessUnit is
 
         DataDB    :     in   std_logic_vector(7 downto 0); -- needed for RET, RETI
 
-        ProgDB    :     inout   std_logic_vector(15 downto 0);
+        ProgDB    :     in   std_logic_vector(15 downto 0);
         
         ProgAB    :     out   std_logic_vector(15 downto 0) -- PC value
          
