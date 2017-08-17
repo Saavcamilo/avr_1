@@ -112,7 +112,7 @@ begin
 	process(InstructionOpCode, Clock, Flags(6), CycCounter) 
 	begin
 		-- initialize outputs
-        RegisterXYZEn <= '0'; -- "0" means xyz register is inactive, "1" means active
+        RegisterXYZEn <= '0'; -- '1' means write to xyz register, '0' means don't write to it
 		RegisterXYZSel <= "11"; -- "00" xyz register is selecting x
 								-- "01" xyz register is selecting y
 								-- "10" xyz register is selecting z
