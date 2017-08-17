@@ -59,7 +59,8 @@ entity  ALU  is
                                                             -- as input 
         Output    :  out std_logic_vector(7 downto 0);      -- ALU result
         StatReg   :  out std_logic_vector(7 downto 0);      -- status register
-        ZeroFlag  :  out std_logic
+        ZeroFlag  :  out std_logic;
+		  TransferFlag: out std_logic
     );
 
 end  ALU;

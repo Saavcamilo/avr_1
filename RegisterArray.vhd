@@ -48,7 +48,7 @@ entity  RegisterArray  is
     port(
         clock    :  in  std_logic;                          -- system clock
         Enable   :  in  std_logic;       							-- Enables the registers 
-        RegMux   :  in  std_logic(2 downto 0);
+        RegMux   :  in  std_logic_vector(2 downto 0);
         Selects  :  in  std_logic_vector(4 downto 0);       -- Selects output register
         RegASel  :  in  std_logic_vector(4 downto 0);
         RegBSel  :  in  std_logic_vector(4 downto 0);

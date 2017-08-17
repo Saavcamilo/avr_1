@@ -108,9 +108,22 @@ architecture state_machine of ControlUnit is
     );
     signal CurrentState, NextState: state; 
 	 signal CycCounter : std_logic_vector(1 downto 0);
+	 signal StatusBitMask: std_logic_vector(7 downto 0);
 begin
+
 	process(InstructionOpCode, Clock, Flags(6), CycCounter) 
 	begin
+	
+	case InstructionOpCode(2 downto 0) is
+		when "000"        =>	StatusBitMask <= "00000001";
+		when "001"        =>	StatusBitMask <= "00000010";
+		when "010"        =>	StatusBitMask <= "00000100";
+		when "011"        =>	StatusBitMask <= "00001000";
+		when "100"        =>	StatusBitMask <= "00010000";
+		when "101"        =>	StatusBitMask <= "00100000";
+		when "110"        =>	StatusBitMask <= "01000000";
+		when "111"        =>	StatusBitMask <= "10000000";
+	end case;	
 		-- initialize outputs
         RegisterXYZEn <= '0'; -- '1' means write to xyz register, '0' means don't write to it
 		RegisterXYZSel <= "11"; -- "00" xyz register is selecting x
@@ -1390,9 +1403,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpJMP)) then 
 		 	IF(cycCounter = "00") then -- for cycle 1 
 		 		PMAOp <= "000"; -- connect PMA's NewPC to ProgDB but don't update PC
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PMAOp <= "000"; -- connect PMA's NewPC to ProgDB but don't update PC
-		 	ELSEIF(cycCounter = "10") then -- 3rd cycle
+		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PMAOp <= "001"; -- update PC to ProgDB value
 		 	ELSE 	-- this shouldn't execute
 		 		
@@ -1402,7 +1415,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	IF(cycCounter = "00") then -- for cycle 1 
 		 		PMAOp <= "100"; -- set up signals for adding PC to passed immediate
 		 		PCoffset <= InstructionOpCode(11 downto 0); -- passed immediate to add to PC
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PMAOp <= "101"; -- update PC by adding passed immediate and incrementing
 		 		PCoffset <= InstructionOpCode(11 downto 0);
 		 	ELSE 	-- this shouldn't execute
@@ -1414,8 +1427,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		PMAOp <= "010"; -- prep signals for setting PC to value of reg Z
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
-		 		PMAOp <= "011"; update PC to value in register Z
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
+		 		PMAOp <= "011"; --update PC to value in register Z
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
 		 	ELSE 	-- this shouldn't execute
@@ -1432,19 +1445,19 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "10";
 
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 2) to stack (upper byte)
 
-		 	ELSEIF(cycCounter = "10") then -- 3rd cycle
+		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 2) to stack (lower byte)
 
-		 	ELSEIF(cycCounter = "11") then -- 4th cycle
+		 	ELSIF(cycCounter = "11") then -- 4th cycle
 		 		PCoffset <= "000000000000"; 
 		 		RegMux <= "000"; -- disable databus connection to PC output
 		 		PushPop <= "00"; -- disable pushpop
@@ -1464,13 +1477,13 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (upper byte)
 
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (lower byte)
 
-		 	ELSEIF(cycCounter = "10") then -- 3rd cycle
+		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PCoffset <= InstructionOpCode(11 downto 0);
 		 		PMAOp <= "101"; -- set PC to passed relative offset
 		 		RegMux <= "000"; -- disable DMA data bus connection to PC output
@@ -1490,17 +1503,17 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (upper byte)
 
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (lower byte)
 
-		 	ELSEIF(cycCounter = "10") then -- 3rd cycle
+		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PCoffset <= "000000000000";
 		 		RegMux <= "000"; -- disable DMA data bus connection to PC output
 		 		PushPop <= "00"; -- disable pushpop
-		 		PMAOp <= "011"; update PC to value in register Z
+		 		PMAOp <= "011"; --update PC to value in register Z
 		 		RegisterXYZEn <= '1'; -- register XYZ is active
 		 		RegisterXYZSel <= "10"; -- register XYZ is selecting register Z
 
@@ -1515,19 +1528,19 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegMux <= "111"; -- DMA data bus connects to PC input 
 		 		PushPop <= "00";
 
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "111"; -- set PC to value on DB (upper byte)
 		 		RegMux <= "111"; -- DMA data bus connects to PC input
 		 		PushPop <= "01"; -- pop (PC + 1) off stack
 
-		 	ELSEIF(cycCounter = "10") then -- 3rd cycle
+		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "111"; -- set PC to value on DB (lower byte)
 		 		RegMux <= "111"; -- DMA data bus connects to PC input
 		 		PushPop <= "01"; -- pop (PC + 1) off stack
 
-		 	ELSEIF(cycCounter = "11") then -- 4th cycle
+		 	ELSIF(cycCounter = "11") then -- 4th cycle
 		 		PCoffset <= "000000000000"; 
 		 		RegMux <= "000"; -- disable databus connection to PC output
 		 		PushPop <= "00"; -- disable pushpop
@@ -1544,19 +1557,19 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		RegMux <= "111"; -- DMA data bus connects to PC input 
 		 		PushPop <= "00";
 
-		 	ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "111"; -- set PC to value on DB (upper byte)
 		 		RegMux <= "111"; -- DMA data bus connects to PC input
 		 		PushPop <= "01"; -- pop (PC + 1) off stack
 
-		 	ELSEIF(cycCounter = "10") then -- 3rd cycle
+		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "111"; -- set PC to value on DB (lower byte)
 		 		RegMux <= "111"; -- DMA data bus connects to PC input
 		 		PushPop <= "01"; -- pop (PC + 1) off stack
 
-		 	ELSEIF(cycCounter = "11") then -- 4th cycle
+		 	ELSIF(cycCounter = "11") then -- 4th cycle
 		 		PCoffset <= "000000000000"; 
 		 		RegMux <= "000"; -- disable databus connection to PC output
 		 		PushPop <= "00"; -- disable pushpop
@@ -1564,7 +1577,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 
 		 		-- set interrupt flag:
 		 		RegisterEn <= '0'; -- do not write output of ALU to register
-		 		Immediate <= "10000000"; (8th bit for the interrupt flag)
+		 		Immediate <= "10000000"; --(8th bit for the interrupt flag)
 		 		OpSel <= "0110111001"; -- ALU op code for BSET instruction
 		 		FlagMask <= "10000000"; --update interrupt flag
 
@@ -1573,17 +1586,17 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpBRBC)) then 
-		 	IF (Flags(InstructionOpCode(2 downto 0)) = '0') then -- take branch
+		 	IF ((Flags and StatusBitMask) = "00000000") then -- take branch
 		 		IF(cycCounter = "00") then -- for cycle 1 
 			 		PMAOp <= "100"; -- set up signals for adding PC to passed immediate
 			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
 			 		PCoffset(11 downto 7) <= "00000";
 
-		 		ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 		ELSIF(cycCounter = "01") then -- 2nd cycle
 			 		PMAOp <= "101"; -- update PC
 			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
 			 		PCoffset(11 downto 7) <= "00000";
-
+				END IF;
 		 	ELSE -- don't take branch, increment PC normally
 
 		 		PMAOp <= "101"; -- increment PC by 1
@@ -1592,17 +1605,17 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpBRBS)) then 
-		 	IF (Flags(InstructionOpCode(2 downto 0)) = '1') then -- take branch
+		 	IF ((Flags and StatusBitMask) /= "00000000") then -- take branch
 		 		IF(cycCounter = "00") then -- for cycle 1 
 			 		PMAOp <= "100"; -- set up signals for adding PC to passed immediate
 			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
 			 		PCoffset(11 downto 7) <= "00000";
 
-		 		ELSEIF(cycCounter = "01") then -- 2nd cycle
+		 		ELSIF(cycCounter = "01") then -- 2nd cycle
 			 		PMAOp <= "101"; -- update PC
 			 		PCoffset(6 downto 0) <= InstructionOpCode(9 downto 3); -- passed immediate to add to PC
 			 		PCoffset(11 downto 7) <= "00000";
-
+				END IF;
 		 	ELSE -- don't take branch, increment PC normally
 
 		 		PMAOp <= "101"; -- increment PC by 1
@@ -1638,8 +1651,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 								  -- to be skipped was a 2 word instruction
 		 		PMAOp <= "101"; -- increment PC by 1
 				PCoffset <= "000000000000";
-		 	
-		 	ELSE -- this shouldn't execute
 
 		  	END IF;
 		 END IF;
@@ -1681,9 +1692,6 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 								  -- to be skipped was a 2 word instruction
 		 		PMAOp <= "101"; -- increment PC by 1
 				PCoffset <= "000000000000";
-		 	
-		 	ELSE -- this shouldn't execute
-
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpSBRS)) then 
@@ -1724,12 +1732,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 								  -- to be skipped was a 2 word instruction
 		 		PMAOp <= "101"; -- increment PC by 1
 				PCoffset <= "000000000000";
-		 	
-		 	ELSE -- this shouldn't execute
-
-		  	END IF;
+			END IF;
 		 END IF;
-
     end process;
 	 
 	transition: process(CurrentState, InstructionOpCode)
@@ -1780,8 +1784,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
                     NextState <= STALL; -- if instruction is one of the two/three cycle instructions, then stall
 										-- next cycle
 
-				 elsif ((std_match(InstructionOpCode, OpBRBC) and Flags(InstructionOpCode(2 downto 0)) = '0')
-				 		or (std_match(InstructionOpCode, OpBRBS) and Flags(InstructionOpCode(2 downto 0)) = '1')) then
+				 elsif ((std_match(InstructionOpCode, OpBRBC) and (Flags and StatusBitMask) = "00000000")
+				 		or (std_match(InstructionOpCode, OpBRBS) and (Flags and StatusBitMask) /= "00000000")) then
 				 	NextState <= STALL; -- conditional branch instructions have variable length cycles
 
 				 elsif ((std_match(InstructionOpCode, OpCPSE) and ZeroFlag = '1') 
@@ -1794,7 +1798,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 
                 END IF;
         end case;
-    end process transition;
+    end process;
 
     outputs: process (Clock, CurrentState)
     begin
