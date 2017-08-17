@@ -51,7 +51,7 @@ entity ProgramMemoryAccessUnit is
         Offset    :     in   std_logic_vector(11 downto 0);
         PMAOpSel  :     in   std_logic_vector(2 downto 0);
 
-        DataDB    :     in   std_logic_vector(7 downto 0); -- needed for RET, RETI
+        DataDB    :     inout std_logic_vector(7 downto 0); -- needed for RET, RETI
 
         ProgDB    :     in   std_logic_vector(15 downto 0);
         
@@ -155,13 +155,13 @@ ProgAB <= ProgramCounter;
                     OffsetPC <= "0000000000000000";
                     NewPC <= "0000000000000000";
                 ELSIF PMAOpSel = "111" then
-                    ProgramCounter(15 downto 8) <= DataDB;
+                    ProgramCounter(7 downto 0) <= DataDB;
                 ELSIF rising_edge(Clock) and PMAOpSel(0) = '1' then
                     ProgramCounter <= NewPC;
                 END IF;
 
             when CLK2 =>    
-                ProgramCounter(7 downto 0) <= DataDB;
+                ProgramCounter(15 downto 8) <= DataDB;
 
             when others =>
                      

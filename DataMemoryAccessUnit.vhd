@@ -42,6 +42,7 @@ use ieee.numeric_std.all;
 --                                    the signals
 --     5  Jul 17  Camilo Saavedra     Fixed bug
 --    16  Aug 17  Anant Desai         Added Stack Pointer output capability
+--    17  Aug 17  Anant Desai         Added DataDB outputs
 ----------------------------------------------------------------------------
 entity DataMemoryAccessUnit is
     port(
@@ -50,12 +51,16 @@ entity DataMemoryAccessUnit is
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
+        ProgAB    :     in   std_logic_vector(15 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
+        RegIn     :     in   std_logic_vector(7 downto 0);
+        RegInEn   :     in   std_logic;
+        RegMux    :     in   std_logic_vector(2 downto 0);
         AddrOpSel :     in   std_logic_vector(2 downto 0);
         StackOp   :     in   std_logic_vector(1 downto 0);
         SP        :     in   std_logic_vector(7 downto 0);
-        DataDB    :     inout   std_logic_vector(7 downto 0);
-        
+
+        DataDB    :     inout std_logic_vector(7 downto 0);
         DataAB    :     out   std_logic_vector(15 downto 0);
         NewAddr   :     out   std_logic_vector(15 downto 0);
         DataWr    :     out   std_logic;
@@ -88,6 +93,9 @@ end Component;
 -- mux them depending on the desired operation. 
 	 signal ConstAddr: std_logic_vector(15 downto 0);
     signal AddedAddr: std_logic_vector(15 downto 0);
+
+    signal PCbyte : std_logic_vector(7 downto 0);
+
 begin
 
 AddrAdder: AddressAdder PORT MAP(
@@ -100,6 +108,13 @@ DataAB  <=    SP        when StackOp(0) = '1' else
 			  ConstAddr when AddrOpSel(1) = '1' else
 			  AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
+
+DataDB  <=    RegIn     when (RegMux = "110" and RegInEn = '0') else -- used for store instructions
+              PCbyte    when (RegMux = "111")  else -- used for CALL instructions
+              "XXXXXXXX"; -- need a way to not put anything on DB line when 
+                          -- neither of the 2 conditions are met
+
+
 -- THe NewAddr is always the address post arithmetic.              
 NewAddr <=    AddedAddr;              
     
@@ -138,14 +153,18 @@ NewAddr <=    AddedAddr;
 		  -- second half of the last clock
             when CLK1 =>
 				ConstAddr <= ProgDB;
-                    DataWr <= '1';
-					DataRd <= '1';
+                DataWr <= '1';
+				DataRd <= '1';
+                PCbyte <= ProgAB(15 downto 8); -- for CALL instructions
+
             when CLK2 =>
-				    --ConstAddr is manipulated for the three cycle
-					 -- instructions 
-				    ConstAddr <= ConstAddr;
-					 -- If clk = 0 and it is a two cycle instruction,
-					 -- then we assert the wanted DataW/R signal
+			    --ConstAddr is manipulated for the three cycle
+				 -- instructions 
+			    ConstAddr <= ConstAddr;
+                PCbyte <= ProgAB(7 downto 0); -- for CALL instructions
+
+				 -- If clk = 0 and it is a two cycle instruction,
+				 -- then we assert the wanted DataW/R signal
                 if ((Clock = '0') and (AddrOpSel(1) = '0')) then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
@@ -155,7 +174,7 @@ NewAddr <=    AddedAddr;
                     DataWr <= '1';
 						  DataRd <= '1';					 
                 end if;
-				when CLK3 =>
+			when CLK3 =>
 					 --ConstAddr is manipulated for the three cycle
 					 -- instructions 
 					 ConstAddr <= ConstAddr;
