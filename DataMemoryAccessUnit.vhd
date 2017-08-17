@@ -111,7 +111,7 @@ DataAB  <=    SP        when StackOp(0) = '1' else
 
 DataDB  <=    RegIn     when (RegMux = "110" and RegInEn = '0') else -- used for store instructions
               PCbyte    when (RegMux = "111")  else -- used for CALL instructions
-              "XXXXXXXX"; -- need a way to not put anything on DB line when 
+              "ZZZZZZZZ"; -- need a way to not put anything on DB line when 
                           -- neither of the 2 conditions are met
 
 
