@@ -47,10 +47,15 @@ use std.textio.all;  --include package textio.vhd
 entity  PC_TEST  is
 
     port (
+
+        -- not using ------------------------
         IR      :  in     opcode_word;                      -- Instruction Register
         ProgDB  :  in     std_logic_vector(15 downto 0);    -- second word of instruction
         Reset   :  in     std_logic;                        -- system reset signal (active low)
         clk   :  in     std_logic;                        -- system clock
+        --          -------------------------
+
+        ProgAB  :  out    std_logic_vector(15 downto 0);
         DataAB  :  out    std_logic_vector(15 downto 0);    -- data address bus
         DataDB  :  inout  std_logic_vector(7 downto 0);     -- data data bus
         DataRd  :  out    std_logic;                        -- data read (active low)
@@ -76,6 +81,18 @@ component DataMemoryAccessUnit is
         DataRd    :     out   std_logic
         );
 end component;
+
+component ProgramMemoryAccessUnit is
+    port(
+        RegZ      :     in   std_logic_vector(15 downto 0);
+        Clock     :     in   std_logic;
+        Reset     :     in   std_logic;
+        Offset    :     in   std_logic_vector(11 downto 0);
+        PMAOpSel  :     in   std_logic_vector(2 downto 0);
+        DataDB    :     inout std_logic_vector(7 downto 0); -- needed for RET, RETI
+        ProgDB    :     in   std_logic_vector(15 downto 0);
+        ProgAB    :     out   std_logic_vector(15 downto 0) -- PC value
+    );
 
 Component ControlUnit is
     port (
@@ -195,34 +212,55 @@ end Component;
     signal   SPoutput : std_logic_vector(7 downto 0);
 
 
+    signal pcRST    : std_logic;
+    signal pcOffset : std_logic_vector(11 downto 0);
+    signal PMAOp    : std_logic_vector(2 downto 0);
+    signal ProgAB1  : std_logic_vector(15 downto 0);
+    signal RegInEn  : std_logic;
+    signal RegMux   : std_logic_vector(2 downto 0);
+    signal ZeroFlag : std_logic;
+    signal TransferFlag : std_logic;
+
 begin
+    ProgAB <= Prog_AB1;
 	DataAB <= Data_AB1;
 	DataRd <= DataRd1;
 	--RegVal <= ALUoutput;
 	
     -- Unit Under Test port map
-    UUT : DataMemoryAccessUnit   port map  (
+
+    UUT     : ProgramMemoryAccessUnit port map (
+        RegZ => ResultXYZ, Clock => clock, Reset => pcRST, Offset => pcOffset,
+        PMAOpSel => PMAOp, DataDB => DataDB, ProgDB => ProgDBs, ProgAB => ProgAB1
+    );
+
+
+    DMAUnit : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
-        Offset => Constants(5 downto 0), ProgDB => ProgDBs, AddrOpSel => DMAOp,
+        Offset => Constants(5 downto 0), ProgAB => ProgAB1, ProgDB => ProgDBs, 
+        RegIn => ResultA, RegInEn => RegisterEn, RegMux => RegMux, AddrOpSel => DMAOp, 
+        StackOp => PushPop, SP => SPoutput,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd1);
 
     Controller : ControlUnit  port map (
             clock => clock, InstructionOpcode => FetchedInstruction, Flags => Flag,
-            IRQ => IRQ, FetchIR => Fetch, PushPop => PushPop, 
+            ZeroFlag => ZeroFlag, TransferFlag => TransferFlag, 
+            IRQ => IRQ, ProgDB => ProgDBs, FetchIR => Fetch, PushPop => PushPop, 
             RegisterEn => RegisterEn,
             RegisterSel => RegisterSel, RegisterASel => RegisterASel, 
             RegisterBSel => RegisterBSel, RegisterXYZEn => RegisterXYZEn,
-            RegisterXYZSel => RegisterXYZSel, DMAOp => DMAOp, 
+            RegisterXYZSel => RegisterXYZSel, DMAOp => DMAOp, PMAOp => PMAOp, 
             OpSel => OperandSel, LDRImmed => LDRImmed, FlagMask => FlagMask,
-            Immediate => Constants, ImmediateM => ImmediateM, Read_Mem => Read_Mem,
+            Immediate => Constants, PCoffset => pcOffset, Read_Mem => Read_Mem,
             Write_Mem => Write_Mem
     );
 
     Registers : RegisterArray       port map  (
-        clock => clock, Enable => RegisterEn, UseImmed => LDRImmed, 
+        clock => clock, Enable => RegisterEn, RegMux => RegMux, 
         Selects => RegisterSel, RegASel => RegisterASel, RegBSel => RegisterBSel, 
-        Input => ALUoutput, Immediate => Constants, RegXYZEn => RegisterXYZEn, 
+        ALUInput => ALUoutput, MemInput => DataDB, Immediate => Constants, 
+        RegXYZEn => RegisterXYZEn, 
         RegXYZSel => RegisterXYZSel, InputXYZ => InputXYZ, WriteXYZ => RegisterXYZEn,
         RegAOut => ResultA, RegBOut => ResultB, RegXYZOut => ResultXYZ
     );
@@ -230,7 +268,8 @@ begin
 	ALU_Unit : ALU        port map  (
 				OperandSel => OperandSel, Flag => Flag, FlagMask => FlagMask,
 				OperandA => ResultA, OperandB => ResultB, Immediate => Constants,
-                Output => ALUoutput, StatReg => Flag
+                Output => ALUoutput, StatReg => Flag, ZeroFlag => ZeroFlag, 
+                TransferFlag => TransferFlag
     );
 
     Stack : StackPointer     port map  (
@@ -249,7 +288,7 @@ begin
               
     reading :
     process
-        file   infile    : text is in  "memInput.txt";   --declare input file
+        file   infile    : text is in  "pcInput.txt";   --declare input file
         variable  inline    : line; --line number declaration
         variable  dataread1    : bit_vector(31 downto 0);
 	      
@@ -275,9 +314,12 @@ begin
     -- now generate the stimulus and test it
     process
     begin  -- of stimulus process
-	spRST <= '0';
+
+	spRST <= '0'; -- reset SP to 11111111
+    pcRST <= '0'; -- reset pc to 0000000000000000
 	wait for 100 ns;
-   spRST <= '1';
+    spRST <= '1';
+    pcRST <= '1';
 
     -- fill registers with values
 	
@@ -502,150 +544,11 @@ begin
 		
     end loop;
 
-    wait for 20 ns;
-	
-
-
-    -- meminput.txt comments:
-    --lines 1-32 test instruction LD (LDX, LDXI, LDXD, LDYI, LDYD, LDZI, LDZD)
-    --lines 33-40 test instructions LDD (LDDY, LDDZ)
-        --lines 33-36 test LDDY
-        --lines 37-40 test LDDZ
-	 --lines 41-72 test instructions ST (STX, STXI, STXD, STYI, STYD, STZI, STZD)
-	 --lines 73-80 test instructions STD (STDY, STDZ)
-		  --lines 73-76 test STDY
-		  --lines 77-80 test STDZ
-
-
-
-
-
-
-
-
-
-
-    -- test LDS
-
-    FetchedInstruction <= "1001000000000000";
-    wait for 10ns;
-    ProgDBs <= "0000000000000000";
-    wait for 10ns;
-    ProgDBs <= "UUUUUUUUUUUUUUUU";
-    wait for 5 ns;
-    assert (std_match(Data_AB1, "0000000000000000")) report "test LDS 1";
-    wait for 5 ns;
-
-
-    FetchedInstruction <= "1001000111110000";
-    wait for 10ns;
-    ProgDBs <= "1111111111111111";
-    wait for 10ns;
-    ProgDBs <= "UUUUUUUUUUUUUUUU";
-    wait for 5 ns;
-    assert (std_match(Data_AB1, "1111111111111111")) report "test LDS 2";
-    wait for 5 ns;
-
-
-    FetchedInstruction <= "1001000101010000";
-    wait for 10ns;
-    ProgDBs <= "1010101010101010";
-    wait for 10ns;
-    ProgDBs <= "UUUUUUUUUUUUUUUU";
-    wait for 5 ns;
-    assert (std_match(Data_AB1, "1010101010101010")) report "test LDS 3";
-    wait for 5 ns;
-
-
-
-
-    -- test STS
-
-    FetchedInstruction <= "1001001000000000";
-    wait for 10ns;
-    ProgDBs <= "0000000000000000";
-    wait for 10ns;
-    ProgDBs <= "UUUUUUUUUUUUUUUU";
-    wait for 5 ns;
-    assert (std_match(Data_AB1, "0000000000000000")) report "test STS 1";
-    wait for 5 ns;
-
-
-    FetchedInstruction <= "1001001111110000";
-    wait for 10ns;
-    ProgDBs <= "1111111111111111";
-    wait for 10ns;
-    ProgDBs <= "UUUUUUUUUUUUUUUU";
-    wait for 5 ns;
-    assert (std_match(Data_AB1, "1111111111111111")) report "test STS 2";
-    wait for 5 ns;
-
-
-    FetchedInstruction <= "1001001101010000";
-    wait for 10ns;
-    ProgDBs <= "1010101010101010";
-    wait for 10ns;
-    ProgDBs <= "UUUUUUUUUUUUUUUU";
-    wait for 5 ns;
-    assert (std_match(Data_AB1, "1010101010101010")) report "test STS 3";
-    wait for 5 ns;
-
-
-    wait for 20 ns;
-
-    -- test push/pop
-
-    -- reset stack pointer
-    spRST <= '0';       -- reset stack pointer to "11111111"
-    wait for 10 ns;
-	 spRST <= '1'; 			-- make sure reset is not still active
-	 wait for 10 ns;
-
-    -- test push
-    FetchedInstruction <= "1001001000001111";
-    wait for 15 ns;
-    assert (std_match(SPoutput, "11111111")) report "test PUSH 1";
-    wait for 5 ns;
-
-    FetchedInstruction <= "1001001000001111";
-    wait for 15 ns;
-    assert (std_match(SPoutput, "11111110")) report "test PUSH 2";
-    wait for 5 ns;
-
-    FetchedInstruction <= "1001001000001111";
-    wait for 15 ns;
-    assert (std_match(SPoutput, "11111101")) report "test PUSH 3";
-    wait for 5 ns;
-
-
-    -- test pop
-    FetchedInstruction <= "1001000000001111";
-    wait for 15 ns;
-    assert (std_match(SPoutput, "11111101")) report "test POP 1";
-    wait for 5 ns;
-
-    FetchedInstruction <= "1001000000001111";
-    wait for 15 ns;
-    assert (std_match(SPoutput, "11111110")) report "test POP 2";
-    wait for 5 ns;
-
-    FetchedInstruction <= "1001000000001111";
-    wait for 15 ns;
-    assert (std_match(SPoutput, "11111111")) report "test POP 3";
-    wait for 5 ns;
-
-
-
-
-
 
 
 
 
     wait for 4000 ns;
-
-
-
 
 
 

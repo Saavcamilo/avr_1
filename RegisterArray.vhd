@@ -46,13 +46,13 @@ use opcodes.opcodes.all;
 entity  RegisterArray  is
 
     port(
-        clock    :  in  std_logic;                          -- system clock
-        Enable   :  in  std_logic;       							-- Enables the registers 
+        clock    :  in  std_logic;                       -- system clock
+        Enable   :  in  std_logic;       			     -- Enables the registers 
         RegMux   :  in  std_logic_vector(2 downto 0);
-        Selects  :  in  std_logic_vector(4 downto 0);       -- Selects output register
+        Selects  :  in  std_logic_vector(4 downto 0);    -- Selects output register
         RegASel  :  in  std_logic_vector(4 downto 0);
         RegBSel  :  in  std_logic_vector(4 downto 0);
-        ALUInput :  in  std_logic_vector(7 downto 0);       -- input register bus
+        ALUInput :  in  std_logic_vector(7 downto 0);    -- input register bus
 		MemInput :  in  std_logic_vector(7 downto 0);
 	    
         Immediate:  in  std_logic_vector(7 downto 0);
@@ -61,10 +61,9 @@ entity  RegisterArray  is
         InputXYZ :  in  std_logic_vector(15 downto 0);
         WriteXYZ :  in  std_logic;
 
-        RegAOut  :  out std_logic_vector(7 downto 0);       -- register bus A out
-        RegBOut  :  out std_logic_vector(7 downto 0);       -- register bus B out
-        RegXYZOut:  out std_logic_vector(15 downto 0);
-		RegZOut  :  out std_logic_vector(15 downto 0)       -- output used for IJMP
+        RegAOut  :  out std_logic_vector(7 downto 0);    -- register bus A out
+        RegBOut  :  out std_logic_vector(7 downto 0);    -- register bus B out
+        RegXYZOut:  out std_logic_vector(15 downto 0)
     );
 end  RegisterArray;
 
@@ -140,8 +139,6 @@ architecture Registers of RegisterArray is
     end component;
 
 begin 
-    RegZOut(7 downto 0)  <= Q30;
-	RegZOut(15 downto 8) <= Q31; 
     -- Following statements are the logic that drive the  
 	 -- select signal when a RegXYZ select signal is 
 	 -- performed. If none of these are performed, the 
