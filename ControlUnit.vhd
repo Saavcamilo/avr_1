@@ -84,7 +84,7 @@ entity  ControlUnit  is
 		RegisterBSel     : out    std_logic_vector(4 downto 0);
 		RegisterXYZEn 	 : out    std_logic;
 		RegisterXYZSel   : out    std_logic_vector(1 downto 0);
-		RegMux 		     : out 	  std_logic_vector(1 downto 0);
+		RegMux 		     : out 	  std_logic_vector(2 downto 0);
 		DMAOp 			 : out 	  std_logic_vector(2 downto 0);
 		PMAOp 			 : out    std_logic_vector(2 downto 0);
         OpSel	    	 : out    std_logic_vector(9 downto 0);
@@ -123,6 +123,7 @@ begin
 		when "101"        =>	StatusBitMask <= "00100000";
 		when "110"        =>	StatusBitMask <= "01000000";
 		when "111"        =>	StatusBitMask <= "10000000";
+		when others       => StatusBitMask <= "00000000";
 	end case;	
 		-- initialize outputs
         RegisterXYZEn <= '0'; -- '1' means write to xyz register, '0' means don't write to it
@@ -1448,16 +1449,12 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
-		 		Read_Mem <= '1'; -- we are not reading
-		 		Write_Mem <= '0'; -- we are writing PC out to memory (stack)
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 2) to stack (upper byte)
 
 		 	ELSIF(cycCounter = "10") then -- 3rd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
-		 		Read_Mem <= '1'; -- we are not reading
-		 		Write_Mem <= '0'; -- we are writing PC out to memory (stack)
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 2) to stack (lower byte)
 
@@ -1478,16 +1475,12 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 						-- of instruction, then we won't fetch, which 
 		 						-- means that we won't jump to a new instruction
 		 						-- yet
-		 		Read_Mem <= '1'; -- we are not reading
-		 		Write_Mem <= '0'; -- we are writing PC out to memory (stack)
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (upper byte)
 
 		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
-		 		Read_Mem <= '1'; -- we are not reading
-		 		Write_Mem <= '0'; -- we are writing PC out to memory (stack)
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (lower byte)
 
@@ -1508,16 +1501,12 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 						-- of instruction, then we won't fetch, which 
 		 						-- means that we won't jump to a new instruction
 		 						-- yet
-		 		Read_Mem <= '1'; -- we are not reading
-		 		Write_Mem <= '0'; -- we are writing PC out to memory (stack)
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (upper byte)
 
 		 	ELSIF(cycCounter = "01") then -- 2nd cycle
 		 		PCoffset <= "000000000000"; 
 		 		PMAOp <= "000"; -- disable PMAOp
-		 		Read_Mem <= '1'; -- we are not reading
-		 		Write_Mem <= '0'; -- we are writing PC out to memory (stack)
 		 		RegMux <= "111"; -- DMA data bus connects to PC output
 		 		PushPop <= "11"; -- push (PC + 1) to stack (lower byte)
 

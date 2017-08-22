@@ -73,6 +73,8 @@ component DataMemoryAccessUnit is
         Offset    :     in   std_logic_vector(5 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
         AddrOpSel :     in   std_logic_vector(2 downto 0);
+        StackOp   :     in   std_logic_vector(1 downto 0);
+        SP        :     in   std_logic_vector(7 downto 0);
         DataDB    :     inout   std_logic_vector(7 downto 0);
         
         DataAB    :     out   std_logic_vector(15 downto 0);
@@ -90,68 +92,79 @@ component ProgramMemoryAccessUnit is
         Offset    :     in   std_logic_vector(11 downto 0);
         PMAOpSel  :     in   std_logic_vector(2 downto 0);
         DataDB    :     inout std_logic_vector(7 downto 0); -- needed for RET, RETI
-        ProgDB    :     in   std_logic_vector(15 downto 0);
+        ProgDB    :     inout   std_logic_vector(15 downto 0);
         ProgAB    :     out   std_logic_vector(15 downto 0) -- PC value
     );
+end component;
 
 Component ControlUnit is
     port (
         clock            :  in  std_logic;
         InstructionOpCode :  in  opcode_word; 
-        Flags            :  in  std_logic_vector(7 downto 0);   
-        IRQ              :  in  std_logic_vector(7 downto 0);   
-        FetchIR          :  out std_logic; 
+        Flags            :  in  std_logic_vector(7 downto 0);	
+        ZeroFlag 		 :  in  std_logic;
+        TransferFlag 	 :  in  std_logic;
+        IRQ 			 :  in  std_logic_vector(7 downto 0);
+        ProgDB 			 :  in  std_logic_vector(15 downto 0);
 
-        PushPop          : out    std_logic_vector(1 downto 0);
+        FetchIR          : out 	  std_logic; 
+        PushPop 		 : out    std_logic_vector(1 downto 0);
         RegisterEn       : out    std_logic;
-        RegisterSel      : out    std_logic_vector(4 downto 0);
+		  RegisterSel	 	 : out 	  std_logic_vector(4 downto 0);
         RegisterASel     : out    std_logic_vector(4 downto 0);
-        RegisterBSel     : out    std_logic_vector(4 downto 0);
-        RegisterXYZEn    : out    std_logic;
-        RegisterXYZSel   : out    std_logic_vector(1 downto 0);
-        DMAOp            : out    std_logic_vector(2 downto 0);
-        OpSel            : out    std_logic_vector(9 downto 0);
-        LDRImmed         : out    std_logic;
+		  RegisterBSel     : out    std_logic_vector(4 downto 0);
+		  RegisterXYZEn 	 : out    std_logic;
+		  RegisterXYZSel   : out    std_logic_vector(1 downto 0);
+		  RegMux 		    : out 	  std_logic_vector(2 downto 0);
+		  DMAOp 			    : out 	  std_logic_vector(2 downto 0);
+		  PMAOp 			    : out    std_logic_vector(2 downto 0);
+        OpSel	    	 : out    std_logic_vector(9 downto 0);
+        LDRImmed		 : out 	  std_logic;
         FlagMask         : out    std_logic_vector(7 downto 0);
         Immediate        : out    std_logic_vector(7 downto 0);
-        ImmediateM       : out    std_logic_vector(15 downto 0);
-        Read_Mem         : out    std_logic;
-        Write_Mem        : out    std_logic
+        PCoffset 		 : out 	  std_logic_vector(11 downto 0);
+        Read_Mem 	 	 : out    std_logic;
+        Write_Mem 	     : out 	  std_logic
         );
+
 end component;
 
 Component  RegisterArray  is
     port(
-        clock    :  in  std_logic;                          -- system clock
-        Enable   :  in  std_logic;                                  -- Enables the registers 
-        UseImmed :  in  std_logic;
-        Selects  :  in  std_logic_vector(4 downto 0);       -- Selects output register
+        clock    :  in  std_logic;                       -- system clock
+        Enable   :  in  std_logic;       			     -- Enables the registers 
+        RegMux   :  in  std_logic_vector(2 downto 0);
+        Selects  :  in  std_logic_vector(4 downto 0);    -- Selects output register
         RegASel  :  in  std_logic_vector(4 downto 0);
         RegBSel  :  in  std_logic_vector(4 downto 0);
-        Input    :  in  std_logic_vector(7 downto 0);       -- input register bus
+        ALUInput :  in  std_logic_vector(7 downto 0);    -- input register bus
+		MemInput :  in  std_logic_vector(7 downto 0);
+	    
         Immediate:  in  std_logic_vector(7 downto 0);
         RegXYZEn :  in  std_logic;
         RegXYZSel:  in  std_logic_vector(1 downto 0);
         InputXYZ :  in  std_logic_vector(15 downto 0);
         WriteXYZ :  in  std_logic;
 
-        RegAOut  :  out std_logic_vector(7 downto 0);       -- register bus A out
-        RegBOut  :  out std_logic_vector(7 downto 0);       -- register bus B out
+        RegAOut  :  out std_logic_vector(7 downto 0);    -- register bus A out
+        RegBOut  :  out std_logic_vector(7 downto 0);    -- register bus B out
         RegXYZOut:  out std_logic_vector(15 downto 0)
     );
-end  Component;
+end component;
 
 Component ALU is
     port(
         OperandSel:  in  std_logic_vector(9 downto 0);      -- Operand select
-        Flag      :  in  std_logic_vector(7 downto 0);      -- Flag inputs  
+        Flag      :  in  std_logic_vector(7 downto 0);      -- Flag inputs                                                        -- (size unclear)
         FlagMask  :  in  std_logic_vector(7 downto 0);      -- Flag Mask
         OperandA  :  in  std_logic_vector(7 downto 0);      -- first operand
         OperandB  :  in  std_logic_vector(7 downto 0);      -- second operand
-        Immediate :  in  std_logic_vector(7 downto 0);
-
+		Immediate :  in  std_logic_vector(7 downto 0);      -- 8bit value can use
+                                                            -- as input 
         Output    :  out std_logic_vector(7 downto 0);      -- ALU result
-        StatReg   :  out std_logic_vector(7 downto 0)       -- status register
+        StatReg   :  out std_logic_vector(7 downto 0);      -- status register
+        ZeroFlag  :  out std_logic;
+		TransferFlag : out std_logic
     );
 end Component;
 
@@ -222,9 +235,9 @@ end Component;
     signal TransferFlag : std_logic;
 
 begin
-    ProgAB <= Prog_AB1;
-	DataAB <= Data_AB1;
-	DataRd <= DataRd1;
+    ProgAB <= ProgAB1;
+	 DataAB <= Data_AB1;
+	 DataRd <= DataRd1;
 	--RegVal <= ALUoutput;
 	
     -- Unit Under Test port map
@@ -237,9 +250,8 @@ begin
 
     DMAUnit : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
-        Offset => Constants(5 downto 0), ProgAB => ProgAB1, ProgDB => ProgDBs, 
-        RegIn => ResultA, RegInEn => RegisterEn, RegMux => RegMux, AddrOpSel => DMAOp, 
-        StackOp => PushPop, SP => SPoutput,
+        Offset => Constants(5 downto 0), ProgDB => ProgDBs, 
+        AddrOpSel => DMAOp, StackOp => PushPop, SP => SPoutput,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd1);
 
@@ -268,7 +280,7 @@ begin
 	ALU_Unit : ALU        port map  (
 				OperandSel => OperandSel, Flag => Flag, FlagMask => FlagMask,
 				OperandA => ResultA, OperandB => ResultB, Immediate => Constants,
-                Output => ALUoutput, StatReg => Flag, ZeroFlag => ZeroFlag, 
+            Output => ALUoutput, StatReg => Flag, ZeroFlag => ZeroFlag, 
                 TransferFlag => TransferFlag
     );
 
