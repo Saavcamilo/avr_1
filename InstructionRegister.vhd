@@ -47,7 +47,4 @@ begin
     IRout <= Output;
 
 
-
-
-    end process;
 end architecture;

@@ -151,9 +151,6 @@ ProgAB <= ProgramCounter;
                 IF Reset = '0' then -- reset ProgramCounter, IncrementedPC, OffsetPC, and NewPC
                                     -- to lowest value
                     ProgramCounter <= "0000000000000000";
-                    IncrementedPC <= "0000000000000000";
-                    OffsetPC <= "0000000000000000";
-                    NewPC <= "0000000000000000";
                 ELSIF PMAOpSel = "111" then
                     ProgramCounter(7 downto 0) <= DataDB;
                 ELSIF rising_edge(Clock) and PMAOpSel(0) = '1' then

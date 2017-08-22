@@ -71,12 +71,16 @@ component DataMemoryAccessUnit is
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
+        ProgAB    :     in   std_logic_vector(15 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
+        RegIn     :     in   std_logic_vector(7 downto 0);
+        RegInEn   :     in   std_logic;
+        RegMux    :     in   std_logic_vector(2 downto 0);
         AddrOpSel :     in   std_logic_vector(2 downto 0);
         StackOp   :     in   std_logic_vector(1 downto 0);
         SP        :     in   std_logic_vector(7 downto 0);
-        DataDB    :     inout   std_logic_vector(7 downto 0);
-        
+
+        DataDB    :     inout std_logic_vector(7 downto 0);
         DataAB    :     out   std_logic_vector(15 downto 0);
         NewAddr   :     out   std_logic_vector(15 downto 0);
         DataWr    :     out   std_logic;
@@ -184,7 +188,6 @@ end Component;
     signal Flag      :  std_logic_vector(7 downto 0);      -- Flag inputs    
     signal FlagMask  :  std_logic_vector(7 downto 0);      -- Flag Mask
     signal Constants :  std_logic_vector(7 downto 0);      -- Immediate value
-    signal ImmediateM : std_logic_vector(15 downto 0);     -- immediate value of
                                                              
     signal FetchedInstruction : opcode_word;
     signal IRQ       :  std_logic_vector(7 downto 0);   
@@ -229,7 +232,6 @@ end Component;
     signal pcOffset : std_logic_vector(11 downto 0);
     signal PMAOp    : std_logic_vector(2 downto 0);
     signal ProgAB1  : std_logic_vector(15 downto 0);
-    signal RegInEn  : std_logic;
     signal RegMux   : std_logic_vector(2 downto 0);
     signal ZeroFlag : std_logic;
     signal TransferFlag : std_logic;
@@ -250,7 +252,8 @@ begin
 
     DMAUnit : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
-        Offset => Constants(5 downto 0), ProgDB => ProgDBs, 
+        Offset => Constants(5 downto 0), ProgAB => ProgAB1, ProgDB => ProgDBs, 
+		  RegIn => ResultA, RegInEn => RegisterEn, RegMux => RegMux, 
         AddrOpSel => DMAOp, StackOp => PushPop, SP => SPoutput,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd1);
@@ -262,7 +265,7 @@ begin
             RegisterEn => RegisterEn,
             RegisterSel => RegisterSel, RegisterASel => RegisterASel, 
             RegisterBSel => RegisterBSel, RegisterXYZEn => RegisterXYZEn,
-            RegisterXYZSel => RegisterXYZSel, DMAOp => DMAOp, PMAOp => PMAOp, 
+            RegisterXYZSel => RegisterXYZSel, RegMux => RegMux, DMAOp => DMAOp, PMAOp => PMAOp, 
             OpSel => OperandSel, LDRImmed => LDRImmed, FlagMask => FlagMask,
             Immediate => Constants, PCoffset => pcOffset, Read_Mem => Read_Mem,
             Write_Mem => Write_Mem
@@ -329,128 +332,127 @@ begin
 
 	spRST <= '0'; -- reset SP to 11111111
     pcRST <= '0'; -- reset pc to 0000000000000000
-	wait for 100 ns;
+	wait for 50 ns;
     spRST <= '1';
     pcRST <= '1';
+	 wait for 50 ns;
 
     -- fill registers with values
 	
 	-- put 0 in r0
 	FetchedInstruction <= "1110000011110000";
-	wait for 20 ns;
+	wait for 10 ns;
 	FetchedInstruction <= "0010111000001111";
-	wait for 20 ns;
+	wait for 10 ns;
 	
 	-- put 1 in r1
 	FetchedInstruction <= "1110000011110001";
-	wait for 20 ns;
+	wait for 10 ns;
 	FetchedInstruction <= "0010111000011111";
-	wait for 20 ns;
+	wait for 10 ns;
 	
-	
-
-    -- put 2 in r2
+	-- put 2 in r2
     FetchedInstruction <= "1110000011110010";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111000101111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 3 in r3
     FetchedInstruction <= "1110000011110011";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111000111111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 4 in r4
     FetchedInstruction <= "1110000011110100";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111001001111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 8 in r5
     FetchedInstruction <= "1110000011111000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111001011111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 10 in r6
     FetchedInstruction <= "1110000011111010";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111001101111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 0 in r7
     FetchedInstruction <= "1110000011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111001111111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 15 in r8
     FetchedInstruction <= "1110000011111111";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111010001111";
-    wait for 20 ns;
+    wait for 10 ns;
 
 
     -- put 16 in r9
     FetchedInstruction <= "1110000111110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111010011111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 32 in r10
     FetchedInstruction <= "1110001011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111010101111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 64 in r11
     FetchedInstruction <= "1110010011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111010111111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 128 in r12
     FetchedInstruction <= "1110100011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111011001111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 255 in r13
     FetchedInstruction <= "1110111111111111";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111011011111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 0 in r14
     FetchedInstruction <= "1110000011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111011101111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 1 in r15
     FetchedInstruction <= "1110000011110001";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111011111111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 2 in r16
     FetchedInstruction <= "1110000011110010";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111100001111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 3 in r17
     FetchedInstruction <= "1110000011110011";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111100011111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 4 in r18
     FetchedInstruction <= "1110000011110100";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111100101111";
-    wait for 20 ns;
+    wait for 10 ns;
 
 
 
@@ -458,92 +460,90 @@ begin
 
     -- put 170 in r19
     FetchedInstruction <= "1110101011111010";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111100111111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 255 in r20
     FetchedInstruction <= "1110111111111111";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111101001111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 240 in r21
     FetchedInstruction <= "1110111111110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111101011111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 255 in r22
     FetchedInstruction <= "1110101011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111101101111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 255 in r23
     FetchedInstruction <= "1110100011110000";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111101111111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 51 in r24
     FetchedInstruction <= "1110001111110011";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111110001111";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 52 in r25
     FetchedInstruction <= "1110001111110100";
-    wait for 20 ns;
+    wait for 10 ns;
     FetchedInstruction <= "0010111110011111";
-    wait for 20 ns;
+    wait for 10 ns;
 
 	
 	-- test LDI instruction by loading registers 26-31 with immediates
 	
     -- put 1 in r26
     FetchedInstruction <= "1110000010100001";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 0 in r27
     
     FetchedInstruction <= "1110000010110000";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 0 in r28
     FetchedInstruction <= "1110000011000000";
-    wait for 20 ns;
+    wait for 10 ns;
 	
     -- put 0 in r29
     
     FetchedInstruction <= "1110000011010000";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 0 in r30
     FetchedInstruction <= "1110000011100000";
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- put 128 in r31
     RegVal <= "10000000";
     FetchedInstruction <= "1110100011110000";
-    wait for 20 ns;
+    wait for 10 ns;
 	 
 	-- test MOV instruction
 	
 	-- put 1 in r29 (by moving r26 into r29)
 	FetchedInstruction <= "0010111111011010";
 	
-	wait for 20 ns;
+	wait for 10 ns;
 	
 	-- put 0 in r26 (by moving r27 into r26)
 	FetchedInstruction <= "0010111110101011";
 	
-	wait for 20 ns;
-	
-	 
+	wait for 10 ns;
 
-
-    for i in 0 to 79 loop
+    
+	for i in 0 to 79 loop
 	 
 		read_file <= '1';
 		wait for 10 ns;
@@ -555,7 +555,6 @@ begin
 		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
 		
     end loop;
-
 
 
 
