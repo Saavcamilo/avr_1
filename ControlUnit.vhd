@@ -1003,8 +1003,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Write_Mem <= '1'; -- we are not writing
 		 		FlagMask <= "00000000"; -- don't change any flags
 
-		 		PMAOp <= "101"; -- increment PC by 1
-				PCoffset <= "000000000000";
+		 		PMAOp <= "101"; -- increment PC by 2
+				PCoffset <= "000000000001";
 		  	END IF;
 		 END IF;
 		 If (std_match(InstructionOpCode, OpMOV)) then 
@@ -1354,8 +1354,8 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 		Write_Mem <= '0'; -- we are writing
 		 		FlagMask <= "00000000"; -- don't change any flags
 
-		 		PMAOp <= "101"; -- increment PC by 1
-				PCoffset <= "000000000000";
+		 		PMAOp <= "101"; -- increment PC by 2
+				PCoffset <= "000000000001";
 		  	END IF;
 		 
 		 END IF;
