@@ -33,7 +33,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
 library opcodes;
@@ -71,11 +70,8 @@ component DataMemoryAccessUnit is
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
-        ProgAB    :     in   std_logic_vector(15 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
-        RegIn     :     in   std_logic_vector(7 downto 0);
-        RegInEn   :     in   std_logic;
-        RegMux    :     in   std_logic_vector(2 downto 0);
+
         AddrOpSel :     in   std_logic_vector(2 downto 0);
         StackOp   :     in   std_logic_vector(1 downto 0);
         SP        :     in   std_logic_vector(7 downto 0);
@@ -252,8 +248,7 @@ begin
 
     DMAUnit : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
-        Offset => Constants(5 downto 0), ProgAB => ProgAB1, ProgDB => ProgDBs, 
-		  RegIn => ResultA, RegInEn => RegisterEn, RegMux => RegMux, 
+        Offset => Constants(5 downto 0), ProgDB => ProgDBs,  
         AddrOpSel => DMAOp, StackOp => PushPop, SP => SPoutput,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd1);
@@ -542,18 +537,24 @@ begin
 	
 	wait for 10 ns;
 
-    
-	for i in 0 to 79 loop
+	spRST <= '0'; -- reset SP to 11111111
+    pcRST <= '0'; -- reset pc to 0000000000000000
+	 FetchedInstruction <= "UUUUUUUUUUUUUUUU";
+	wait for 50 ns;
+    spRST <= '1';
+    pcRST <= '1';
+	 for i in 0 to 79 loop
 	 
 		read_file <= '1';
 		wait for 10 ns;
 		FetchedInstruction <= dataread(31 downto 16);
 		read_file <= '0';
 		wait for 15 ns;
-		assert (std_match(Data_AB1, dataread(15 downto 0))) report "test " & INTEGER'IMAGE(i); -- check load/store instructions
+		assert (std_match(progab1, dataread(15 downto 0))) report "test " & INTEGER'IMAGE(i) &
+		                                                           " expected " & integer'image(to_integer(unsigned(dataread(15 downto 0)))) &
+																					  " got " & integer'image(to_integer(unsigned(progab1))); -- check load/store instructions
 		wait for 5 ns;
 		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
-		
     end loop;
 
 
