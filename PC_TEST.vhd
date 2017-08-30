@@ -543,7 +543,7 @@ begin
 	wait for 50 ns;
     spRST <= '1';
     pcRST <= '1';
-	 for i in 0 to 79 loop
+	 for i in 0 to 4 loop
 	 
 		read_file <= '1';
 		wait for 10 ns;
@@ -556,10 +556,20 @@ begin
 		wait for 5 ns;
 		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
     end loop;
-
-
-
-
+	 for i in 5 to 7 loop
+	 
+		read_file <= '1';
+		wait for 10 ns;
+		FetchedInstruction <= dataread(31 downto 16);
+		read_file <= '0';
+		wait for 25 ns;
+		assert (std_match(progab1, dataread(15 downto 0))) report "test " & INTEGER'IMAGE(i) &
+		                                                           " expected " & integer'image(to_integer(unsigned(dataread(15 downto 0)))) &
+																					  " got " & integer'image(to_integer(unsigned(progab1))); -- check load/store instructions
+		wait for 5 ns;
+		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
+    end loop;	 
+	 
     wait for 4000 ns;
 
 
