@@ -76,7 +76,7 @@ begin --
             else                        -- when pushing
                 SPout <= CurrPointer;
 			   end if;
-        elsif rising_edge(Clock) then -- during 1st cycle of push/pop
+        elsif falling_edge(Clock) then -- during 1st cycle of push/pop
                                                            -- (or any other clock that isn't
                                                            -- the 2nd cycle of push/pop),
                                                            -- store stack pointer in
