@@ -1745,7 +1745,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
         	when STALL2 =>
         		if ((std_match(InstructionOpCode, OpCALL)) or (std_match(InstructionOpCode, OpRET))
         		   or (std_match(InstructionOpCode, OpRETI))) then
-            		NextState <= STALL2; -- stall for 3 states (used for 4 cycle instructions)
+            		NextState <= STALL3; -- stall for 3 states (used for 4 cycle instructions)
             	else
                 	NextState <= FETCH; -- if we have been waiting
 									-- then next cycle continue to fetch

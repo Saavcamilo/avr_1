@@ -70,8 +70,11 @@ component DataMemoryAccessUnit is
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
+        ProgAB    :     in   std_logic_vector(15 downto 0);
         ProgDB    :     in   std_logic_vector(15 downto 0);
-
+        RegIn     :     in   std_logic_vector(7 downto 0);
+        RegInEn   :     in   std_logic;
+        RegMux    :     in   std_logic_vector(2 downto 0);
         AddrOpSel :     in   std_logic_vector(2 downto 0);
         StackOp   :     in   std_logic_vector(1 downto 0);
         SP        :     in   std_logic_vector(7 downto 0);
@@ -248,7 +251,8 @@ begin
 
     DMAUnit : DataMemoryAccessUnit   port map  (
         InputAddress => ResultXYZ, Clock => clock, WrIn => Write_Mem, RdIn => Read_Mem, 
-        Offset => Constants(5 downto 0), ProgDB => ProgDBs,  
+        Offset => Constants(5 downto 0), ProgAB => ProgAB1, ProgDB => ProgDBs,
+		RegIn => ResultA, RegInEn => RegisterEn, RegMux => RegMux, 
         AddrOpSel => DMAOp, StackOp => PushPop, SP => SPoutput,
         DataDB => DataDB, DataAB => Data_AB1, NewAddr => InputXYZ, DataWr => DataWr,
         DataRd => DataRd1);
