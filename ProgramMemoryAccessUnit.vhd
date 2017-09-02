@@ -51,7 +51,7 @@ entity ProgramMemoryAccessUnit is
         Offset    :     in   std_logic_vector(11 downto 0);
         PMAOpSel  :     in   std_logic_vector(2 downto 0);
 
-        DataDB    :     inout std_logic_vector(7 downto 0); -- needed for RET, RETI
+        DataDB    :     in   std_logic_vector(7 downto 0); -- needed for RET, RETI
 
         ProgDB    :     in   std_logic_vector(15 downto 0);
         
@@ -171,8 +171,4 @@ ProgAB <= ProgramCounter;
             CurrentState <= NextState;
         end if;
     end process storage;
-
-
-
-    
 end architecture;

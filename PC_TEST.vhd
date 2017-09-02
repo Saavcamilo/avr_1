@@ -56,7 +56,7 @@ entity  PC_TEST  is
 
         ProgAB  :  out    std_logic_vector(15 downto 0);
         DataAB  :  out    std_logic_vector(15 downto 0);    -- data address bus
-        DataDB  :  inout  std_logic_vector(7 downto 0);     -- data data bus
+        DataDBs :  inout  std_logic_vector(7 downto 0);     -- data data bus
         DataRd  :  out    std_logic;                        -- data read (active low)
         DataWr  :  out    std_logic                         -- data write (active low)
     );
@@ -234,13 +234,14 @@ end Component;
     signal RegMux   : std_logic_vector(2 downto 0);
     signal ZeroFlag : std_logic;
     signal TransferFlag : std_logic;
-
+	 signal dataDB: std_logic_vector(7 downto 0);
 begin
     ProgAB <= ProgAB1;
 	 DataAB <= Data_AB1;
 	 DataRd <= DataRd1;
 	--RegVal <= ALUoutput;
-	
+	ProgDBs <= "0000000000000000";
+
     -- Unit Under Test port map
 
     UUT     : ProgramMemoryAccessUnit port map (
@@ -319,11 +320,6 @@ begin
     end if;
 
     end process reading;
-
-
-
-
-
 
     -- now generate the stimulus and test it
     process
@@ -547,7 +543,7 @@ begin
 	wait for 50 ns;
     spRST <= '1';
     pcRST <= '1';
-	 for i in 0 to 4 loop
+	 for i in 0 to 5 loop
 	 
 		read_file <= '1';
 		wait for 10 ns;
@@ -560,7 +556,7 @@ begin
 		wait for 5 ns;
 		FetchedInstruction <= "UUUUUUUUUUUUUUUU";
     end loop;
-	 for i in 5 to 7 loop
+	 for i in 6 to 9 loop
 	 
 		read_file <= '1';
 		wait for 10 ns;
