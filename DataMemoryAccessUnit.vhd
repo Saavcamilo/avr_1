@@ -46,8 +46,8 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity DataMemoryAccessUnit is
     port(
+        clk     :     in   std_logic;	 
         InputAddress:   in   std_logic_vector(15 downto 0);
-        Clock     :     in   std_logic;
         WrIn      :     in   std_logic;
         RdIn      :     in   std_logic; 
         Offset    :     in   std_logic_vector(5 downto 0);
@@ -95,7 +95,7 @@ end Component;
     signal AddedAddr: std_logic_vector(15 downto 0);
 
     signal PCbyte : std_logic_vector(7 downto 0);
-
+    signal SPForm : std_logic_vector(15 downto 0);
 begin
 
 AddrAdder: AddressAdder PORT MAP(
@@ -103,10 +103,10 @@ AddrAdder: AddressAdder PORT MAP(
     LogicAddress => AddedAddr);
 -- Mux the actual address output depending on the bits in 
 -- AddrOpSel
-DataAB  <=    SP        when StackOp(0) = '1' else
-              AddedAddr when AddrOpSel(2) = '1' else
-			  ConstAddr when AddrOpSel(1) = '1' else
-			  AddedAddr when AddrOpSel(0) = '1' else
+DataAB  <=  SPForm    when StackOp(0) = '1' else
+            AddedAddr when AddrOpSel(2) = '1' else
+			   ConstAddr when AddrOpSel(1) = '1' else
+			   AddedAddr when AddrOpSel(0) = '1' else
               InputAddress; 
 
 DataDB  <=    RegIn     when (RegMux = "110" and RegInEn = '0') else -- used for store instructions
@@ -118,7 +118,7 @@ DataDB  <=    RegIn     when (RegMux = "110" and RegInEn = '0') else -- used for
 -- THe NewAddr is always the address post arithmetic.              
 NewAddr <=    AddedAddr;              
     
-    transition: process(CurrentState, WrIn, RdIn, Clock)
+    transition: process(CurrentState, WrIn, RdIn, clk)
     begin
         case CurrentState is
 		      -- CLK1 acts as the idle state, transition 
@@ -145,7 +145,7 @@ NewAddr <=    AddedAddr;
         end case;
     end process transition;
 
-    outputs: process (Clock, CurrentState)
+    outputs: process (clk, CurrentState)
     begin
         case CurrentState is
 		  -- DataWr/DataRd are never asserted
@@ -165,7 +165,7 @@ NewAddr <=    AddedAddr;
 
 				 -- If clk = 0 and it is a two cycle instruction,
 				 -- then we assert the wanted DataW/R signal
-                if ((Clock = '0') and (AddrOpSel(1) = '0')) then 
+                if ((clk = '0') and (AddrOpSel(1) = '0')) then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
 				    else
@@ -178,7 +178,7 @@ NewAddr <=    AddedAddr;
 					 --ConstAddr is manipulated for the three cycle
 					 -- instructions 
 					 ConstAddr <= ConstAddr;
-                if (Clock = '0') then 
+                if (clk = '0') then 
                     DataWr <= WrIn;
                     DataRd <= RdIn;
 				    else
@@ -188,9 +188,9 @@ NewAddr <=    AddedAddr;
         end case;
     end process outputs;
 
-    storage: process (Clock)
+    storage: process (clk)
     begin
-        if (rising_edge(Clock)) then
+        if (rising_edge(clk)) then
             CurrentState <= NextState;
         end if;
     end process storage;

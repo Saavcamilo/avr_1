@@ -25,7 +25,7 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity InstructionRegister is                  --entity declaration  
     port(
-        Clock          :     in   std_logic;   -- System Clock 
+        clk            :     in   std_logic;   -- System Clock 
         En             :     in   std_logic;
         IRin           :     in   std_logic_vector(15 downto 0);
         IRout          :     out  std_logic_vector(15 downto 0)
@@ -38,9 +38,9 @@ signal output: std_logic_vector(15 downto 0) := "0000000000000000";
 
 begin 
 
-    process(Clock)
+    process(clk)
     begin
-        if rising_edge(Clock) and (En = '1') then --Rising edge and enable 
+        if rising_edge(clk) and (En = '1') then --Rising edge and enable 
             Output <= IRin;                               -- signal is asserted
         end if;
     end process;

@@ -44,10 +44,9 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity ProgramMemoryAccessUnit is
     port(
+        clk     :     in   std_logic;	 
         RegZ      :     in   std_logic_vector(15 downto 0);
-        Clock     :     in   std_logic;
         Reset     :     in   std_logic;
-        
         Offset    :     in   std_logic_vector(11 downto 0);
         PMAOpSel  :     in   std_logic_vector(2 downto 0);
 
@@ -124,7 +123,7 @@ NewPC   <=    ProgDB when PMAOpSel(2 downto 1) = "00" else
 ProgAB <= ProgramCounter;
 
 
-    transition: process(CurrentState, Clock, Reset)
+    transition: process(CurrentState, clk, Reset)
     begin
         case CurrentState is
             when CLK1 =>
@@ -144,7 +143,7 @@ ProgAB <= ProgramCounter;
         end case;
     end process transition;
 
-    outputs: process (Clock, CurrentState, Reset)
+    outputs: process (clk, CurrentState, Reset)
     begin
         case CurrentState is
             when CLK1 =>
@@ -153,7 +152,7 @@ ProgAB <= ProgramCounter;
                     ProgramCounter <= "0000000000000000";
                 ELSIF PMAOpSel = "111" then
                     ProgramCounter(7 downto 0) <= DataDB;
-                ELSIF rising_edge(Clock) and PMAOpSel(0) = '1' then
+                ELSIF rising_edge(clk) and PMAOpSel(0) = '1' then
                     ProgramCounter <= NewPC;
                 END IF;
 
@@ -165,9 +164,9 @@ ProgAB <= ProgramCounter;
         end case;
     end process outputs;
 
-    storage: process (Clock)
+    storage: process (clk)
     begin
-        if (rising_edge(Clock)) then
+        if (rising_edge(clk)) then
             CurrentState <= NextState;
         end if;
     end process storage;

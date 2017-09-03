@@ -27,7 +27,7 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity StatusRegister is                  --entity declaration  
     port(
-        Clock     :     in   std_logic;   -- System Clock 
+        clk       :     in   std_logic;   -- System Clock 
         StatusIn  :     in   std_logic_vector(7 downto 0);
         FlagsOut  :     out  std_logic_vector(7 downto 0)
 
@@ -46,5 +46,5 @@ architecture ControlFlow of StatusRegister is
     end component; 
 begin --8 bit register will simply store the value of flags.
     Status_Register: Register8Bit PORT MAP (
-        D => StatusIn, Q => FlagsOut, En => '1', Clock => clock);
+        D => StatusIn, Q => FlagsOut, En => '1', Clock => clk);
 end architecture;

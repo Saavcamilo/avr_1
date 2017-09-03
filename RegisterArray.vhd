@@ -46,7 +46,7 @@ use opcodes.opcodes.all;
 entity  RegisterArray  is
 
     port(
-        clock    :  in  std_logic;                       -- system clock
+        clk    :  in  std_logic;                       -- system clock
         Enable   :  in  std_logic;       			     -- Enables the registers 
         RegMux   :  in  std_logic_vector(2 downto 0);
         Selects  :  in  std_logic_vector(4 downto 0);    -- Selects output register
@@ -241,130 +241,130 @@ begin
     -- line and output. The input of each register is RegIn, so 
     -- whether it is written to only depends on the select line. 
     Register_0: Register8Bit PORT MAP (
-        D => RegIn, Q => Q0, En => SelectLine(0), Clock => clock
+        D => RegIn, Q => Q0, En => SelectLine(0), Clock => clk
     );
     
     Register_1: Register8Bit PORT MAP (
-        D => RegIn, Q => Q1, En => SelectLine(1), Clock => clock
+        D => RegIn, Q => Q1, En => SelectLine(1), Clock => clk
     );
     
     Register_2: Register8Bit PORT MAP (
-        D => RegIn, Q => Q2, En => SelectLine(2), Clock => clock
+        D => RegIn, Q => Q2, En => SelectLine(2), Clock => clk
     );
     
     Register_3: Register8Bit PORT MAP (
-        D => RegIn, Q => Q3, En => SelectLine(3), Clock => clock
+        D => RegIn, Q => Q3, En => SelectLine(3), Clock => clk
     );
     
     Register_4: Register8Bit PORT MAP (
-        D => RegIn, Q => Q4, En => SelectLine(4), Clock => clock
+        D => RegIn, Q => Q4, En => SelectLine(4), Clock => clk
     );
     
     Register_5: Register8Bit PORT MAP (
-        D => RegIn, Q => Q5, En => SelectLine(5), Clock => clock
+        D => RegIn, Q => Q5, En => SelectLine(5), Clock => clk
     );
     
     Register_6: Register8Bit PORT MAP (
-        D => RegIn, Q => Q6, En => SelectLine(6), Clock => clock
+        D => RegIn, Q => Q6, En => SelectLine(6), Clock => clk
     );
     
     Register_7: Register8Bit PORT MAP (
-        D => RegIn, Q => Q7, En => SelectLine(7), Clock => clock
+        D => RegIn, Q => Q7, En => SelectLine(7), Clock => clk
     );
     
     Register_8: Register8Bit PORT MAP (
-        D => RegIn, Q => Q8, En => SelectLine(8), Clock => clock
+        D => RegIn, Q => Q8, En => SelectLine(8), Clock => clk
     );
     
     Register_9: Register8Bit PORT MAP (
-        D => RegIn, Q => Q9, En => SelectLine(9), Clock => clock
+        D => RegIn, Q => Q9, En => SelectLine(9), Clock => clk
     );
     
     Register_10: Register8Bit PORT MAP (
-        D => RegIn, Q => Q10, En => SelectLine(10), Clock => clock
+        D => RegIn, Q => Q10, En => SelectLine(10), Clock => clk
     );
     
     Register_11: Register8Bit PORT MAP (
-        D => RegIn, Q => Q11, En => SelectLine(11), Clock => clock
+        D => RegIn, Q => Q11, En => SelectLine(11), Clock => clk
     );
     
     Register_12: Register8Bit PORT MAP (
-        D => RegIn, Q => Q12, En => SelectLine(12), Clock => clock
+        D => RegIn, Q => Q12, En => SelectLine(12), Clock => clk
     );
     
     Register_13: Register8Bit PORT MAP (
-        D => RegIn, Q => Q13, En => SelectLine(13), Clock => clock
+        D => RegIn, Q => Q13, En => SelectLine(13), Clock => clk
     );
     
     Register_14: Register8Bit PORT MAP (
-        D => RegIn, Q => Q14, En => SelectLine(14), Clock => clock
+        D => RegIn, Q => Q14, En => SelectLine(14), Clock => clk
     );
     
     Register_15: Register8Bit PORT MAP (
-        D => RegIn, Q => Q15, En => SelectLine(15), Clock => clock
+        D => RegIn, Q => Q15, En => SelectLine(15), Clock => clk
     );
     
     Register_16: Register8Bit PORT MAP (
-        D => RegIn, Q => Q16, En => SelectLine(16), Clock => clock
+        D => RegIn, Q => Q16, En => SelectLine(16), Clock => clk
     );
     
     Register_17: Register8Bit PORT MAP (
-        D => RegIn, Q => Q17, En => SelectLine(17), Clock => clock
+        D => RegIn, Q => Q17, En => SelectLine(17), Clock => clk
     );
     
     Register_18: Register8Bit PORT MAP (
-        D => RegIn, Q => Q18, En => SelectLine(18), Clock => clock
+        D => RegIn, Q => Q18, En => SelectLine(18), Clock => clk
     );
     
     Register_19: Register8Bit PORT MAP (
-        D => RegIn, Q => Q19, En => SelectLine(19), Clock => clock
+        D => RegIn, Q => Q19, En => SelectLine(19), Clock => clk
     );
     
     Register_20: Register8Bit PORT MAP (
-        D => RegIn, Q => Q20, En => SelectLine(20), Clock => clock
+        D => RegIn, Q => Q20, En => SelectLine(20), Clock => clk
     );
     
     Register_21: Register8Bit PORT MAP (
-        D => RegIn, Q => Q21, En => SelectLine(21), Clock => clock
+        D => RegIn, Q => Q21, En => SelectLine(21), Clock => clk
     );
     
     Register_22: Register8Bit PORT MAP (
-        D => RegIn, Q => Q22, En => SelectLine(22), Clock => clock
+        D => RegIn, Q => Q22, En => SelectLine(22), Clock => clk
     );
     
     Register_23: Register8Bit PORT MAP (
-        D => RegIn, Q => Q23, En => SelectLine(23), Clock => clock
+        D => RegIn, Q => Q23, En => SelectLine(23), Clock => clk
     );
     
     Register_24: Register8Bit PORT MAP (
-        D => RegIn, Q => Q24, En => SelectLine(24), Clock => clock
+        D => RegIn, Q => Q24, En => SelectLine(24), Clock => clk
     );
     
     Register_25: Register8Bit PORT MAP (
-        D => RegIn, Q => Q25, En => SelectLine(25), Clock => clock
+        D => RegIn, Q => Q25, En => SelectLine(25), Clock => clk
     );    
     -- Final registers mapped to the special XYZ signals.
     Register_26: Register8Bit PORT MAP (
-        D => RegInLow, Q => Q26, En => SelXLow, Clock => clock
+        D => RegInLow, Q => Q26, En => SelXLow, Clock => clk
     );
 
     Register_27: Register8Bit PORT MAP (
-        D => RegInHigh, Q => Q27, En => SelXHigh, Clock => clock
+        D => RegInHigh, Q => Q27, En => SelXHigh, Clock => clk
     );
 
     Register_28: Register8Bit PORT MAP (
-        D => RegInLow, Q => Q28, En => SelYLow, Clock => clock
+        D => RegInLow, Q => Q28, En => SelYLow, Clock => clk
     );
 
     Register_29: Register8Bit PORT MAP (
-        D => RegInHigh, Q => Q29, En => SelYHigh, Clock => clock
+        D => RegInHigh, Q => Q29, En => SelYHigh, Clock => clk
     );
 
     Register_30: Register8Bit PORT MAP (
-        D => RegInLow, Q => Q30, En => SelZLow, Clock => clock
+        D => RegInLow, Q => Q30, En => SelZLow, Clock => clk
     );
 
     Register_31: Register8Bit PORT MAP (
-        D => RegInHigh, Q => Q31, En => SelZHigh, Clock => clock
+        D => RegInHigh, Q => Q31, En => SelZHigh, Clock => clk
     );
 end architecture; 

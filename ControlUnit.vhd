@@ -68,7 +68,7 @@ use opcodes.opcodes.all;
 entity  ControlUnit  is
 
     port (
-        clock            :  in  std_logic;
+        clk            :  in  std_logic;
         InstructionOpCode :  in  opcode_word; 
         Flags            :  in  std_logic_vector(7 downto 0);	
         ZeroFlag 		 :  in  std_logic;
@@ -111,7 +111,7 @@ architecture state_machine of ControlUnit is
 	 signal StatusBitMask: std_logic_vector(7 downto 0);
 begin
 
-	process(InstructionOpCode, Clock, Flags(6), CycCounter) 
+	process(InstructionOpCode, clk, Flags(6), CycCounter) 
 	begin
 	
 	case InstructionOpCode(2 downto 0) is
@@ -972,7 +972,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpLDS)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '1';	-- write to register
-		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		Immediate <= "00000000";
 		 		RegMux <= "110"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
@@ -984,7 +984,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			    PCoffset <= "000000000000";
 		 	ELSIF (cycCounter = "01") THEN -- for the second cycle
 		 		RegisterEn <= '1';	-- write_Mem to register
-		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		Immediate <= "00000000";
 		 		RegMux <= "110"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
@@ -996,7 +996,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			    PCoffset <= "000000000000";
 		 	ELSIF (cycCounter = "01") THEN -- for the third cycle 
 		 		RegisterEn <= '1';	-- write_Mem to register
-		 		RegisterSel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		RegisterSel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		Immediate <= "00000000";
 		 		RegMux <= "110"; -- DMA data bus connects to register input
 		 		DMAOp <= "010";
@@ -1323,7 +1323,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 		 If (std_match(InstructionOpCode, OpSTS)) then 
 		 	IF (cycCounter = "00") then -- for cycles 1
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		Immediate <= "00000000";
 		 		RegMux <= "110"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
@@ -1335,7 +1335,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			    PCoffset <= "000000000000";
 		 	ELSIF (cycCounter = "01") THEN -- for the second cycle
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		Immediate <= "00000000";
 		 		RegMux <= "110"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
@@ -1347,7 +1347,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 			    PCoffset <= "000000000000";
 		 	ELSE -- for the third cycle
 		 		RegisterEn <= '0';	-- don't write to register
-		 		RegisterASel <= InstructionOpCode(24 downto 20); -- register to write to
+		 		RegisterASel <= InstructionOpCode(8 downto 4); -- register to write to
 		 		Immediate <= "00000000";
 		 		RegMux <= "110"; -- DMA data bus connects to register output
 		 		DMAOp <= "010";
@@ -1801,7 +1801,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
         end case;
     end process;
 
-    outputs: process (Clock, CurrentState)
+    outputs: process (clk, CurrentState)
     begin
         case CurrentState is
          	when FETCH =>
@@ -1820,9 +1820,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
     
     end process outputs;
 
-    storage: process (Clock)
+    storage: process (clk)
     begin
-        if (rising_edge(Clock)) then
+        if (rising_edge(clk)) then
             CurrentState <= NextState; -- store present state information
         END IF;
     end process storage;

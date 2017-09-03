@@ -27,7 +27,7 @@ use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 entity StackPointer is                  --entity declaration  
     port(
-        Clock          :     in   std_logic;   -- System Clock 
+        clk            :     in   std_logic;   -- System Clock 
         StackOp        :     in   std_logic_vector(1 downto 0);
         Reset          :     in   std_logic;
         SPout          :     out  std_logic_vector(7 downto 0)
@@ -63,20 +63,20 @@ begin --
     );
 
 
-    process(Clock, Reset)
+    process(clk, Reset)
     begin
         if Reset = '0' then -- reset StackPointer, CurrPointer, and SPout to highest val
             StackPointer <= "11111111";
             CurrPointer <= "11111111";
             SPout <= "11111111";
-        elsif rising_edge(Clock) and StackOp(0) = '1' then --Rising edge and enable 
+        elsif rising_edge(clk) and StackOp(0) = '1' then --Rising edge and enable 
             StackPointer <= NextPointer;             -- signal is asserted
             if StackOp(1) = '0' then    -- when popping
                 SPout <= NextPointer;
             else                        -- when pushing
                 SPout <= CurrPointer;
 			   end if;
-        elsif falling_edge(Clock) then -- during 1st cycle of push/pop
+        elsif falling_edge(clk) then -- during 1st cycle of push/pop
                                                            -- (or any other clock that isn't
                                                            -- the 2nd cycle of push/pop),
                                                            -- store stack pointer in
