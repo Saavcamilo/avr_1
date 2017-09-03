@@ -46,8 +46,8 @@ end Component;
 
     type ProgMem is array (0 to 65535) of opcode_word;
     type DataMem is array (0 to 65535) of std_logic_vector (7 downto 0);
-    signal Data_Memory  : DataMem;
-    signal Prog_Memory  : ProgMem;
+    signal Data_Memory  : DataMem := ((others=> (others=>'0')));
+    signal Prog_Memory  : ProgMem:= ((others=> (others=>'0')));
     signal clk          : std_logic;
     signal RST          : std_logic;
     signal DataDB       : std_logic_vector(7 downto 0);
