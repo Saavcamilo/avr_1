@@ -19,8 +19,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.numeric_std.all;
+USE ieee.numeric_std.ALL;
 
 library opcodes;
 use opcodes.opcodes.all;
@@ -44,11 +43,17 @@ Component AVR is
 		  
     );
 end Component;
+
+    type ProgMem is array (0 to 65535) of opcode_word;
+    type DataMem is array (0 to 65535) of std_logic_vector (7 downto 0);
+    signal Data_Memory  : DataMem;
+    signal Prog_Memory  : ProgMem;
     signal clk          : std_logic;
     signal RST          : std_logic;
     signal DataDB       : std_logic_vector(7 downto 0);
     signal ProgDB       : opcode_word;
     signal ProgAB       : std_logic_vector(15 downto 0);
+    signal DataAB       : std_logic_vector(15 downto 0);
     signal DataWr       : std_logic;
     signal DataRd       : std_logic;
 	 
@@ -58,7 +63,7 @@ begin
     -- Unit Under Test port map
     UUT : AVR        port map  (
         clk => clk, RST => RST, DataDB => DataDB, ProgDB => ProgDB,
-		ProgAB => ProgAB, DataWr => DataWr, DataRd => DataRd
+		ProgAB => ProgAB, DataAB => DataAB, DataWr => DataWr, DataRd => DataRd
         );
     clock: process
     begin
@@ -67,4 +72,20 @@ begin
         clk <= '0';
         wait for 5 ns;
     end process clock;
+    mem: process(DataRd, DataWr, ProgAB)
+    begin
+        if (DataRd = '0') then
+            DataDB <= Data_Memory(to_integer(unsigned(DataAB)));
+        elsif (DataWr = '0') then
+            Data_Memory(to_integer(unsigned(DataAB))) <= DataDB;
+        end if;
+		  ProgDB <= Prog_Memory(to_integer(unsigned(ProgAB)));
+    end process;
+	 main: process
+	 begin
+	     RST <= '1';
+		  wait for 10 ns;
+		  RST <= '0';
+		  wait for 100000 ns;
+    end process;
 end architecture;
