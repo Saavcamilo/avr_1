@@ -1,0 +1,1 @@
+VERSION equ "hwx32"

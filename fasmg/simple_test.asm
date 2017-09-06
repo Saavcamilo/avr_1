@@ -1,3 +1,6 @@
+include "avr.inc"
+include "hex.inc"
+
 LDI 	r16, 1	; 
 LDI 	r17, 8	; 
 LDI 	r18, 9	; 
