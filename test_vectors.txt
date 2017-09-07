@@ -27,36 +27,27 @@ architecture TB_ARCHITECTURE of cpu_test_tb is
     -- test value types    type  byte_array    is array (natural range <>) of std_logic_vector(7 downto 0);
     type  addr_array    is array (natural range <>) of std_logic_vector(15 downto 0);
 
--- expected data bus write signal for each instructionsignal  DataWrTestVals  :  std_logic_vector(0 to 33) :=
-    "1111111111111111111111111111111110";
+-- expected data bus write signal for each instructionsignal  DataWrTestVals  :  std_logic_vector(0 to 17) :=
+    "111111111111111110";
 
--- expected data bus read signal for each instructionsignal  DataRdTestVals  :  std_logic_vector(0 to 33) :=
-    "1111111111111111111111111111111101";
+-- expected data bus read signal for each instructionsignal  DataRdTestVals  :  std_logic_vector(0 to 17) :=
+    "111111111111111101";
 
--- supplied data bus values for each instruction (for read operations)signal  DataDBVals      :  byte_array(0 to 33) := (
+-- supplied data bus values for each instruction (for read operations)signal  DataDBVals      :  byte_array(0 to 17) := (
     "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
     "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
     "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
-    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
-    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
-    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
-    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", X"" );
+    "ZZZZZZZZ", "ZZZZZZZZ", X"" );
 
--- expected data bus output values for each instruction (only has a value on writes)signal  DataDBTestVals  :  byte_array(0 to 33) := (
+-- expected data bus output values for each instruction (only has a value on writes)signal  DataDBTestVals  :  byte_array(0 to 17) := (
     "--------", "--------", "--------", "--------", "--------", 
     "--------", "--------", "--------", "--------", "--------", 
     "--------", "--------", "--------", "--------", "--------", 
-    "--------", "--------", "--------", "--------", "--------", 
-    "--------", "--------", "--------", "--------", "--------", 
-    "--------", "--------", "--------", "--------", "--------", 
-    "--------", "--------", X"",      "--------" );
+    "--------", X"",      "--------" );
 
--- expected data addres bus values for each instructionsignal  DataABTestVals  :  addr_array(0 to 33) := (
+-- expected data addres bus values for each instructionsignal  DataABTestVals  :  addr_array(0 to 17) := (
     "----------------", "----------------", "----------------", "----------------", "----------------", 
     "----------------", "----------------", "----------------", "----------------", "----------------", 
     "----------------", "----------------", "----------------", "----------------", "----------------", 
-    "----------------", "----------------", "----------------", "----------------", "----------------", 
-    "----------------", "----------------", "----------------", "----------------", "----------------", 
-    "----------------", "----------------", "----------------", "----------------", "----------------", 
-    "----------------", "----------------", X"",            X"" );
+    "----------------", X"",            X"" );
 
