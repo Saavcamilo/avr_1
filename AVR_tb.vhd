@@ -44,18 +44,59 @@ Component AVR is
     );
 end Component;
 
-    type ProgMem is array (0 to 65535) of opcode_word;
-    type DataMem is array (0 to 65535) of std_logic_vector (7 downto 0);
-    signal Data_Memory  : DataMem := ((others=> (others=>'0')));
-    signal Prog_Memory  : ProgMem:= ((others=> (others=>'0')));
-    signal clk          : std_logic;
-    signal RST          : std_logic;
-    signal DataDB       : std_logic_vector(7 downto 0);
-    signal ProgDB       : opcode_word;
-    signal ProgAB       : std_logic_vector(15 downto 0);
-    signal DataAB       : std_logic_vector(15 downto 0);
-    signal DataWr       : std_logic;
-    signal DataRd       : std_logic;
+    -- Stimulus signals - signals mapped to the input and inout ports of tested entity    
+	 signal  clk      :  std_logic;
+    signal  RST      :  std_logic;
+    signal  DataDB   :  std_logic_vector(7 downto 0);
+    signal  ProgDB   :  opcode_word;
+	 signal  ProgAB   :  std_logic_vector(15 downto 0);
+    -- Observed signals - signals mapped to the output ports of tested entity    
+	 signal  DataRd   :  std_logic;
+    signal  DataWr   :  std_logic;
+    signal  DataAB   :  std_logic_vector(15 downto 0);
+
+    signal  Counter  :  integer := 0;
+    --Signal used to stop clock signal generators    signal  END_SIM  :  BOOLEAN := FALSE;
+
+    -- test value types    
+	 type  byte_array    is array (natural range <>) of std_logic_vector(7 downto 0);
+    type  addr_array    is array (natural range <>) of std_logic_vector(15 downto 0);
+	 type  prog_array    is array (natural range <>) of std_logic_vector(15 downto 0);
+	 
+
+-- expected data bus write signal for each instruction  
+    signal DataWrTestVals  :  std_logic_vector(0 to 17) := "111111111111111110";
+
+-- expected data bus read signal for each instructionsignal  
+    signal DataRdTestVals  :  std_logic_vector(0 to 17) := "111111111111111101";
+
+    signal  ProgDBVals      :  prog_array(0 to 17) := (
+	 "1110000000000001", "1110000000011000", "1110000000101001", "1110000000111010", "1110000001001011",
+	 "1110000001011100", "1110000001101101", "1110000001111110", "1110000010001111", "1110000110010000",
+	 "1110000010100000", "1110000010110000", "1110000111000011", "1110000111010100", "1110000111100101",
+	 "1110000111110110", "1001001100001100", "1001000000001100");
+
+	 
+-- supplied data bus values for each instruction (for read operations)
+    signal  DataDBVals      :  byte_array(0 to 17) := (
+    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
+    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
+    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ", 
+    "ZZZZZZZZ", "ZZZZZZZZ", "ZZZZZZZZ" );
+
+-- expected data bus output values for each instruction (only has a value on writes)
+    signal  DataDBTestVals  :  byte_array(0 to 17) := (
+    "--------", "--------", "--------", "--------", "--------", 
+    "--------", "--------", "--------", "--------", "--------", 
+    "--------", "--------", "--------", "--------", "--------", 
+    "--------", "--------",      "--------" );
+
+-- expected data addres bus values for each instruction
+    signal  DataABTestVals  :  addr_array(0 to 17) := (
+    "----------------", "----------------", "----------------", "----------------", "----------------", 
+    "----------------", "----------------", "----------------", "----------------", "----------------", 
+    "----------------", "----------------", "----------------", "----------------", "----------------", 
+    "----------------", "----------------", "----------------" );
 	 
 begin
 
@@ -65,27 +106,27 @@ begin
         clk => clk, RST => RST, DataDB => DataDB, ProgDB => ProgDB,
 		ProgAB => ProgAB, DataAB => DataAB, DataWr => DataWr, DataRd => DataRd
         );
-    clock: process
+    
+	 clock: process
     begin
         clk <= '1';
         wait for 5 ns; -- define a clock
         clk <= '0';
         wait for 5 ns;
     end process clock;
-    mem: process(DataRd, DataWr, ProgAB)
-    begin
-        if (DataRd = '0') then
-            DataDB <= Data_Memory(to_integer(unsigned(DataAB)));
-        elsif (DataWr = '0') then
-            Data_Memory(to_integer(unsigned(DataAB))) <= DataDB;
-        end if;
-		  ProgDB <= Prog_Memory(to_integer(unsigned(ProgAB)));
-    end process;
+	 counter <= to_integer(unsigned(ProgAB));
 	 main: process
 	 begin
-	     RST <= '1';
-		  wait for 10 ns;
-		  RST <= '0';
-		  wait for 100000 ns;
+	     RST <= '0';
+		  wait for 11 ns;
+		  RST <= '1';
+          ProgDB <= "1110000000000001";
+          wait for 30 ns;
+		  while counter < 19 loop
+            ProgDB <= ProgDBVals(counter - 2);
+		      wait until counter'event;
+		  end loop;
+		    ProgDB <= "0000000000000000";
+          wait for 10000 ns;
     end process;
 end architecture;

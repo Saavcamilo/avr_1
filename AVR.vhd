@@ -211,7 +211,6 @@ end Component;
 	 signal SPoutput     :    std_logic_vector(7 downto 0);
     -- Internal Buses
     signal ProgAB_int   :    std_logic_vector(15 downto 0); 
-    signal ProgDB_int   :    opcode_word;
     signal DataAB_int   :    std_logic_vector(7 downto 0);
     signal DataDB_int   :    std_logic_vector(7 downto 0);
     begin
@@ -220,13 +219,13 @@ end Component;
         clk => clk, StatusIn => StatRegIn, FlagsOut => Flags
     );
     IR : InstructionRegister port map (
-        clk => clk, En => FetchIR, IRin => ProgDB_int, IRout => IROutput
+        clk => clk, En => FetchIR, IRin => ProgDB, IRout => IROutput
     ); 
     Controller : ControlUnit  port map (
         --Inputs
         clk => clk, InstructionOpcode => IROutput, Flags => Flags,
         ZeroFlag => ZeroFlag, TransferFlag => TransferFlag, 
-        IRQ => IRQ, ProgDB => ProgDB_int, 
+        IRQ => IRQ, ProgDB => IROutput, 
         -- Outputs
         FetchIR => FetchIR, PushPop => PushPop, RegisterEn => RegisterEn,
         RegisterSel => RegSel, RegisterASel => RegASel, 
@@ -255,13 +254,13 @@ end Component;
     
     PMAUnit     : ProgramMemoryAccessUnit port map (
         clk => clk, RegZ => ResultXYZ, Reset => RST, Offset => pcOffset,
-        PMAOpSel => PMAOp, DataDB => DataDB, ProgDB => ProgDB_int, ProgAB => ProgAB
+        PMAOpSel => PMAOp, DataDB => DataDB, ProgDB => ProgDB, ProgAB => ProgAB
     );
 
 
     DMAUnit : DataMemoryAccessUnit   port map  (
         clk => clk, InputAddress => ResultXYZ, WrIn => WrIn, RdIn => RdIn, 
-        Offset => Constants(5 downto 0), ProgAB => ProgAB_int, ProgDB => ProgDB_int,
+        Offset => Constants(5 downto 0), ProgAB => ProgAB_int, ProgDB => ProgDB,
         RegIn => ResultA, RegInEn => RegisterEn, RegMux => RegMux, 
         AddrOpSel => DMAOp, StackOp => PushPop, SP => SPoutput,
         DataDB => DataDB, DataAB => DataAB, NewAddr => InputXYZ, DataWr => DataWr,
