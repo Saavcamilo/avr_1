@@ -89,14 +89,14 @@ end Component;
     "--------", "--------", "--------", "--------", "--------", 
     "--------", "--------", "--------", "--------", "--------", 
     "--------", "--------", "--------", "--------", "--------", 
-    "--------", "--------",      "--------" );
+    "--------", "00000001",      "--------" );
 
 -- expected data addres bus values for each instruction
     signal  DataABTestVals  :  addr_array(0 to 17) := (
     "----------------", "----------------", "----------------", "----------------", "----------------", 
     "----------------", "----------------", "----------------", "----------------", "----------------", 
     "----------------", "----------------", "----------------", "----------------", "----------------", 
-    "----------------", "----------------", "----------------" );
+    "----------------", "0000000000000000", "0000000000000000" );
 	 
 begin
 
@@ -120,11 +120,16 @@ begin
 	     RST <= '0';
 		  wait for 11 ns;
 		  RST <= '1';
-          ProgDB <= "1110000000000001";
-          wait for 30 ns;
-		  while counter < 19 loop
-            ProgDB <= ProgDBVals(counter - 1);
-		      wait until counter'event;
+		  while counter < 18 loop
+            ProgDB <= ProgDBVals(counter);
+            if counter > 1 then 
+            wait for 1 ns;
+			assert (std_match(DataDB, DataDBTestVals(counter-1))) report "DataDB " & INTEGER'IMAGE(counter-1);
+		    assert (std_match(DataAB, DataABTestVals(counter-1))) report "DataAB " & INTEGER'IMAGE(counter-1);
+			assert (std_match(DataWr, DataWrTestVals(counter-1))) report "DataWr " & INTEGER'IMAGE(counter-1);
+            assert (std_match(DataRd, DataRdTestVals(counter-1))) report "DataRd " & INTEGER'IMAGE(counter-1);
+            end if;
+            wait until counter'event or DataWr'Event or DataRd'Event;
 		  end loop;
 		    ProgDB <= "0000000000000000";
           wait for 10000 ns;

@@ -187,7 +187,7 @@ int  main(int argc, char **argv)
 
     /* the read vector */
     fputs("\n-- expected data bus write signal for each instruction", f2);
-    fprintf(f2, "signal  DataWrTestVals  :  std_logic_vector(0 to %d) :=\n", no_vectors - 1);
+    fprintf(f2, "signal  DataRdTestVals  :  std_logic_vector(0 to %d) :=\n", no_vectors - 1);
     fprintf(f2, "    \"");
     for (i = 0; i < no_vectors; i++)  {
         if (rdwr[i][0] == 'r')
@@ -201,7 +201,7 @@ int  main(int argc, char **argv)
 
     /* then the write vector */
     fputs("\n-- expected data bus read signal for each instruction", f2);
-    fprintf(f2, "signal  DataRdTestVals  :  std_logic_vector(0 to %d) :=\n", no_vectors - 1);
+    fprintf(f2, "signal  DataWrTestVals  :  std_logic_vector(0 to %d) :=\n", no_vectors - 1);
 
     fprintf(f2, "    \"");
     for (i = 0; i < no_vectors; i++)  {
