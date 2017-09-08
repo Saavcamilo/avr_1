@@ -123,7 +123,7 @@ begin
           ProgDB <= "1110000000000001";
           wait for 30 ns;
 		  while counter < 19 loop
-            ProgDB <= ProgDBVals(counter - 2);
+            ProgDB <= ProgDBVals(counter - 1);
 		      wait until counter'event;
 		  end loop;
 		    ProgDB <= "0000000000000000";
