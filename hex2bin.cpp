@@ -7,7 +7,7 @@ using namespace std;
 
 
 /* 1st argument is name of input hex file
-   2nd argument is name of output bin file
+   2nd argument is name of output binary file
 */
 int main(int argc, char **argv)
 {
