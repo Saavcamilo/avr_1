@@ -331,10 +331,160 @@ ST 		Z+, r28 	;W0F0037
 
 
 ; LD X
+LDI 	r27, 0 		; 
+LDI 	r26, $37 	; 
+LD 		r0, X 		;R0F0037
+LD 		r0, -X 		;RF00036
+LD 		r0, -X 		;R000035
+LD 		r0, -X 		;R050034
+LD 		r0, X+		;R050034
+LD 		r0, X+ 		;R000035
+LD 		r0, X+ 		;RF00036
 
 
 
+; LD Y
+LDI 	r29, 0 		; 
+LDI 	r28, $30 	; 
+LD 		r1, Y+ 		;R090030
+LD 		r1, Y+ 		;R000031
+LD 		r1, Y+ 		;R090032
+LDI 	r29, 0 		; 
+LDI 	r28, $30 	; 
+LD 		r2, -Y 		;R09002F
+LD 		r2, -Y 		;R09002E
+LD 		r2, -Y 		;R09002D
 
+
+
+; LD Z
+LDI 	r31, 0 		; 
+LDI 	r30, $20 	; 
+LD 		r3, -Z 		;R03001F
+LD 		r3, -Z 		;R02001E
+LD 		r3, -Z 		;R01001D
+LDI 	r31, 0 		; 
+LDI 	r30, $20 	; 
+LD 		r4, Z+ 		;R400020
+LD 		r4, Z+ 		;R200021
+LD 		r4, Z+ 		;RE70022
+
+
+
+; LDD Y
+LDI 	r29, 0 		; 
+LDI 	r28, 0 		; 
+LDD 	r5, Y+4 	;R260004
+LDD 	r5, Y+1 	;R220001
+
+
+
+; LDD Z
+LDI 	r30, 0 		; 
+LDI 	r31, 0 		; 
+LDD 	r6, Z+0 	;R160000
+LDD 	r6, Z+8 	;R020008
+LDI 	r30, 1 		; 
+LDD 	r6, Z+2 	;R190003
+
+
+
+; LDI (has been tested throughout code)
+
+
+
+; LDS
+LDS		r7, $0015 	;R010015
+LDS 	r7, $0009	;R140009
+
+
+
+; MOV (has been tested throughout code)
+
+
+
+; ST X
+LDI 	r27, 0 		; 
+LDI 	r26, $38 	; 
+LDI  	r16, $AA 	; 
+ST 		X, r16 		;WAA0038
+INC 	r26 		; 
+LDI 	r17, $BB 	; 
+LDI 	r18, $CC 	; 
+LDI 	r19, $DD 	; 
+LDI 	r20, $EE 	; 
+LDI 	r21, $FF 	; 
+ST 		X+, r17 	;WBB0039
+ST 		X+, r18 	;WCC003A
+LDI 	r26, $3E 	; 
+ST 		-X, r19		;WDD003D
+ST 		-X, r20 	;WEE003C
+ST 		-X, r21 	;WFF003B
+
+
+
+; ST Y
+LDI 	r29, 0 		; 
+LDI 	r28, $3E 	; 
+ST 		Y+, r16 	;WAA003E
+ST 		Y+, r17 	;WBB003F
+ST 		Y+, r18 	;WCC0040
+LDI 	r28, $43 	; 
+ST 		-Y, r19 	;WDD0042
+ST 		-Y, r20 	;WEE0041
+
+
+
+; ST Z
+LDI 	r31, 0 		; 
+LDI 	r30, $43 	; 
+ST 		Z+, r16 	;WAA0043
+ST 		Z+, r17 	;WBB0044
+LDI 	r30, $48 	; 
+ST 		-Z, r18 	;WCC0047
+ST 		-Z, r19 	;WDD0046
+ST 		-Z, r20 	;WEE0045
+
+
+
+; STD Y
+LDI 	r29, 0 		; 
+LDI 	r28, $44 	; 
+STD 	Y+4, r16	;WAA0048
+STD 	Y+5, r17 	;WBB0049
+
+
+
+; STD Z
+LDI 	r31, 0 		; 
+LDI 	r30, $43 	; 
+STD 	Z+7, r16 	;WAA004A
+STD 	Z+8, r17 	;WBB004B
+STD 	Z+9, r18 	;WCC004C
+
+
+
+; STS
+STS $004D, r16 		;WAA004D
+STS $004E, r17 		;WBB004E
+
+
+
+; PUSH   *note, need to make sure stack pointer has been reset*
+PUSH 	r16 		;WAAFFFF
+PUSH 	r17 		;WBBFFFE
+PUSH 	r18 		;WCCFFFD
+PUSH 	r19 		;WDDFFFC
+PUSH 	r20 		;WEEFFFB
+
+
+
+; POP
+POP 	r1 			;REEFFFB
+POP 	r2 			;RDDFFFC
+POP 	r3 			;RCCFFFD
+POP 	r4 			;RBBFFFE
+POP 	r5 			;RAAFFFF
 
 
 
