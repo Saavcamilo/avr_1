@@ -1736,6 +1736,9 @@ If (std_match(InstructionOpCode, OpLDX)) then
 				PCoffset <= "000000000000";
 			END IF;
 		 END IF;
+		 If (std_match(InstructionOpCode, OpNOP)) then 
+			-- don't do anything
+		 END IF;
     end process;
 	 
 	transition: process(CurrentState, InstructionOpCode)
@@ -1785,7 +1788,7 @@ If (std_match(InstructionOpCode, OpLDX)) then
 						 or (std_match(InstructionOpCode, OpIJMP)) or (std_match(InstructionOpCode, OpCALL))
 						 or (std_match(InstructionOpCode, OpRCALL)) or (std_match(InstructionOpCode, OpICALL))
 						 or (std_match(InstructionOpCode, OpRET)) or (std_match(InstructionOpCode, OpRETI))) then
-                    NextState <= clock2; -- if instruction is one of the two/three cycle instructions, then stall
+                    NextState <= clock2; -- if instruction is one of the two/three/four cycle instructions, then stall
 										-- next cycle
 					FetchIR <= '0'; -- don't fetch yet
 

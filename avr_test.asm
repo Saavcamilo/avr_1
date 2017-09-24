@@ -488,8 +488,103 @@ POP 	r5 			;RAAFFFF
 
 
 
+; JMP 
+JMP 	label1 		; 
+NOP 				; should be skipped
+label1: 			; 
 
 
+
+; RJMP
+RJMP 	label2 		; 
+NOP 				; should be skipped
+label2:				; 
+
+
+
+; IJMP
+
+
+
+; CALL
+
+
+
+; RCALL
+
+
+
+; ICALL
+
+
+
+; RET
+
+
+
+; RETI
+
+
+
+; BRBC
+BSET 	0 			; 
+BRBC 	0, label3 	; 
+NOP					; should NOT be skipped
+label3: 			; 
+BCLR 	0 			; 
+BRBC 	0, label4 	; 
+NOP					; should be skipped
+label4:  			; 
+
+
+
+; BRBS
+BCLR 	0 			; 
+BRBS 	0, label5 	; 
+NOP					; should NOT be skipped
+label5:  			; 
+BSET 	0 			; 
+BRBS 	0, label6 	; 
+NOP					; should be skipped
+label6: 			; 
+
+
+
+; CPSE 
+LDI 	r16, $AA 	; 
+LDI 	r17, $AA 	; 
+LDI 	r18, $BB 	; 
+CPSE 	r16, r17 	; 
+NOP 				; should be skipped
+CPSE 	r16, r18 	; 
+NOP 				; should NOT be skipped
+
+
+
+; SBRC 
+SBRC 	r16, 0 		; 
+NOP 				; should be skipped
+SBRC 	r16, 1 		; 
+NOP 				; should NOT be skipped
+
+
+
+; SBRS
+SBRS 	r16, 0 		; 
+NOP 				; should NOT be skipped
+SBRS 	r16, 1 		; 
+NOP 				; should be skipped
+
+
+
+
+
+
+NOP
+NOP
+NOP
+NOP
+NOP
 
 
 
