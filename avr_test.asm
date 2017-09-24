@@ -502,27 +502,27 @@ label2:				;
 
 
 
-; IJMP
+; IJMP (tested in external vhdl TB file PC_TEST.vhd)
 
 
 
-; CALL
+; CALL (tested in external vhdl TB file PC_TEST.vhd)
 
 
 
-; RCALL
+; RCALL (tested in external vhdl TB file PC_TEST.vhd)
 
 
 
-; ICALL
+; ICALL (tested in external vhdl TB file PC_TEST.vhd)
 
 
 
-; RET
+; RET (tested in external vhdl TB file PC_TEST.vhd)
 
 
 
-; RETI
+; RETI (tested in external vhdl TB file PC_TEST.vhd)
 
 
 
