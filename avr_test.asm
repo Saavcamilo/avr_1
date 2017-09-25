@@ -502,6 +502,29 @@ label2:             ;
 
 
 
+; IJMP (tested in external vhdl TB file PC_TEST.vhd)
+
+
+
+; CALL (tested in external vhdl TB file PC_TEST.vhd)
+
+
+
+; RCALL (tested in external vhdl TB file PC_TEST.vhd)
+
+
+
+; ICALL (tested in external vhdl TB file PC_TEST.vhd)
+
+
+
+; RET (tested in external vhdl TB file PC_TEST.vhd)
+
+
+
+; RETI (tested in external vhdl TB file PC_TEST.vhd)
+
+
 
 ; BRBC
 BSET    0           ; 
