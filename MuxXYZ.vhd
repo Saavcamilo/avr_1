@@ -40,7 +40,7 @@ end MuxXYZ;
 
 architecture ControlFlow of MuxXYZ is 
 begin
-    process(Sel, En)
+    process(ALL)
     begin
     -- Mux is a large when/else statement that will chose which 
     -- byte to output depending on the 2 bit input select signal.
@@ -60,7 +60,5 @@ begin
         end case;
     end if; 
     end process; 
-
-            
 end architecture;
 ---------------------------------------------------------------

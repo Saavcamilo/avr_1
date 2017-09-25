@@ -107,7 +107,7 @@ DataAB  <=  SPForm    when StackOp(0) = '1' else
             AddedAddr when AddrOpSel(2) = '1' else
 			   ConstAddr when AddrOpSel(1) = '1' else
 			   AddedAddr when AddrOpSel(0) = '1' else
-              InputAddress; 
+            InputAddress; 
 
 DataDB  <=    RegIn     when (RegMux = "110" and RegInEn = '0') else -- used for store instructions
               PCbyte    when (RegMux = "111")  else -- used for CALL instructions
