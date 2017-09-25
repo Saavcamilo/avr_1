@@ -4,12 +4,11 @@ use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 --
---  Stack Pointer Register (SP)
+--  Instruction Register (IR)
 --
---  This is an implementation of the stack pointer for an AVR CPU. It 
---  holds the current address of the stack pointer and controls whether
---  the stack pointer should be incremented or decremented based on 
---  the StackOp input, which is driven by a pushPop signal.
+--  This is an implementation of the instruction register for an AVR CPU. It 
+--  holds the instruction fetched off of the program data bus that is being 
+--  executed.
 --
 --  Inputs:
 --      Clock            - the system clock

@@ -79,7 +79,7 @@ BSET    0       ; set carry flag
 ADC     r19, r20    ; 
 ST      X+, r19     ;W160000
 ADC     r19, r20    ; 
-ST      X+, r19     ;W220001
+ST      X+, r19     ;W210001
 BSET    0       ; set carry flag
 ADC     r19, r20    ; 
 ST      X+, r19     ;W2D0002
@@ -100,7 +100,7 @@ ST      X+, r21     ;W260004
 
 ADIW    r25:r24, 1  ; 
 ST      X+, r24     ;W100005
-ST      X+, r25     ;W000006
+INC 	r26 		; 
 
 
 
@@ -144,7 +144,7 @@ ST      Y+, r16     ;W01000D
 ; BST / BLD
 BST     r3, 3       ; 
 BLD     r7, 0       ; 
-ST      Y+, r7      ;W41000E
+ST      Y+, r7      ;W40000E
 
 
 
@@ -152,7 +152,7 @@ ST      Y+, r7      ;W41000E
 BST     r3, 0       ; 
 BSET    6           ; 
 BLD     r7, 1       ; 
-ST      Y+, r7      ;W43000F
+ST      Y+, r7      ;W42000F
 
 
 

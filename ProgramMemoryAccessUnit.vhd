@@ -4,37 +4,26 @@ use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 ----------------------------------------------------------------------------
 --
---  Data Memory Access Unit (DMA U)
+--  Program Memory Access Unit (PMA U)
 --
---  This is an implementation of the data memory access unit in a AVR CPU.
---  It generates the waveforms necessary to access external memory, and 
---  it translates logical addresses to physical address, which are then
---  output. The regular read and write take 2 cycles, with some constant
---  operations taking 3 clocks. The timin is managed by a finite state
---  machine to ensure the necessary waveforms to access memory.
+--  This is an implementation of the program memory access unit in a AVR CPU.
+--  It handle the storage and modification of the value of the program counter,
+--  which determines which instruction address is to be fetched next.
 --
 --  Inputs:
 --      Clock            - System Clock.
---      InputAddress     - Logical address which CPU is trying to access
---                       - which is 16 bits
---      WrIn             - Write signal, active low
---      RdIn             - Read signal, active low
+--      RegZ             - register Z
 --      Offset           - Address offset from input address used in 
 --                         certain operations.
 --      ProgDB           - Data bus containing full address in STS and
 --                       - LDS instructions.
---      AddrOpSel        - 3 bit code used to determine which operation
---                         the DMA is performing.
+--      PMAOpSel         - 3 bit code used to determine which operation
+--                         the PMA is performing.
 --      DataDB           - 8 bit data bus
 --
 --  Outputs:
---      DataAB           - Data address bus that is output
---      NewAddr          - Updated address for post/pre increment
---                       - instructions.
---      DataWr           - The write signal that is actually output
---                       - to the physical memory
---      DataRd           - The read signal that is output to the 
---                         actual memory.
+--      ProgAB           - program address bus value that is output which 
+--                         determines which instruction address to fetch next
 --
 --  Revision History:
 --     31 Mar 17  Camilo Saavedra     Initial revision.
