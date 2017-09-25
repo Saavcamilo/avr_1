@@ -180,7 +180,7 @@ int  main(int argc, char **argv)
     /* finally output the test vectors */
 
     /* the read vector */
-    fputs("\n-- expected data bus write signal for each instruction", f2);
+    fputs("\n-- expected data bus write signal for each instruction\n", f2);
     fprintf(f2, "signal  DataRdTestVals  :  std_logic_vector(0 to %d) :=\n", no_vectors - 1);
     fprintf(f2, "    \"");
     for (i = 0; i < no_vectors; i++)  {
@@ -194,7 +194,7 @@ int  main(int argc, char **argv)
     fprintf(f2, "\";\n");
 
     /* then the write vector */
-    fputs("\n-- expected data bus read signal for each instruction", f2);
+    fputs("\n-- expected data bus read signal for each instruction\n", f2);
     fprintf(f2, "signal  DataWrTestVals  :  std_logic_vector(0 to %d) :=\n", no_vectors - 1);
 
     fprintf(f2, "    \"");
@@ -209,7 +209,7 @@ int  main(int argc, char **argv)
     fprintf(f2, "\";\n");
 
     /* next the data vectors */
-    fputs("\n-- supplied data bus values for each instruction (for read operations)", f2);
+    fputs("\n-- supplied data bus values for each instruction (for read operations)\n", f2);
     fprintf(f2, "signal  DataDBVals      :  byte_array(0 to %d) := (", no_vectors - 1);
     for (i = 0; i < no_vectors; i++)  {
         if ((i % VEC_PER_LINE) == 0)
@@ -238,7 +238,7 @@ int  main(int argc, char **argv)
         }
     }
 
-    fputs("\n-- expected data bus output values for each instruction (only has a value on writes)", f2);
+    fputs("\n-- expected data bus output values for each instruction (only has a value on writes)\n", f2);
     fprintf(f2, "signal  DataDBTestVals  :  byte_array(0 to %d) := (", no_vectors - 1);
     for (i = 0; i < no_vectors; i++)  {
         if ((i % VEC_PER_LINE) == 0)
@@ -267,7 +267,7 @@ int  main(int argc, char **argv)
     }
 
     /* finally the address vectors */
-    fputs("\n-- expected data addres bus values for each instruction", f2);
+    fputs("\n-- expected data addres bus values for each instruction\n", f2);
     fprintf(f2, "signal  DataABTestVals  :  addr_array(0 to %d) := (", no_vectors - 1);
     for (i = 0; i < no_vectors; i++)  {
         if ((i % VEC_PER_LINE) == 0)
