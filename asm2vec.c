@@ -103,17 +103,11 @@ int  main(int argc, char **argv)
                 /* neither read nor write */
                 strcpy(rdwr[no_vectors], " ");
             }
-        
+
 
 	    /* if have a read or write cycle, need get data and address */
             if (rdwr[no_vectors][0] != ' ')  {
 
-                /* data follows the next space */
-                while ((line[i] != '\0') && !isspace(line[i]))
-                    i++;
-                /* skip all whitespace */
-                while ((line[i] != '\0') && isspace(line[i]))
-                    i++;
                 strncpy(data[no_vectors], &(line[i]), 2);
                 data[no_vectors][2] = '\0';
                 /* move past the dat value */
@@ -225,6 +219,7 @@ int  main(int argc, char **argv)
         if (rdwr[i][0] == 'r')
             /* reading - put the data out */
             fprintf(f2, "X\"%s\"", data[i]);
+
         else
             /* not reading - high-Z */
             fprintf(f2, "\"ZZZZZZZZ\"");
