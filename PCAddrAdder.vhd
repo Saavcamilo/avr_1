@@ -6,22 +6,15 @@ use ieee.numeric_std.all;
 --
 --  PCAddrAdder (PCAddrAdder)
 --
---  This is an implementation of an 8 Bit Adder/Subtractor. It takes in the
---  two operands and a subtract signal that tells the block whether to add 
---  the two operands, or whether to subtract OperandB from OperandA. The
---  block also takes in a CarryIn, and outputs a CarryOut. 
+--  This is an implementation of an address Adder. It takes in the
+--  two operands and simply adds them.
 --
 --  Inputs:
---      Cin              - Possible carry bit input for the system
---      Subtract         - Bit is low for addition, high for subtraction
---      A                - First operand of Adder/Subtractor
---      B                - Second operand of Adder/Subtractor.
+--      A                - First operand 
+--      B                - Second operand 
 --
 --  Outputs:
---      Sum              - Result of the operation for Adder/Subtractor
---      Cout             - Carry flag of the highest bit operation
---      HalfCarry        - Carry out of bit 3 into bit 4
---      Overflow         - Cout Xor with carry out of bit 7. 
+--      LogicAddress     - Result of the operation for Adder
 --
 --  Revision History:
 --     11 Aug 17  Anant Desai     Initial revision.

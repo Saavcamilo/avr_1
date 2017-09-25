@@ -14,18 +14,31 @@ use ieee.numeric_std.all;
 --  machine to ensure the necessary waveforms to access memory.
 --
 --  Inputs:
---      Clock            - System Clock.
+--      clk              - System Clock.
 --      InputAddress     - Logical address which CPU is trying to access
 --                       - which is 16 bits
 --      WrIn             - Write signal, active low
 --      RdIn             - Read signal, active low
 --      Offset           - Address offset from input address used in 
 --                         certain operations.
+--      ProgAB           - Address bus containing the program address
 --      ProgDB           - Data bus containing full address in STS and
 --                       - LDS instructions.
+--      RegIn            - Input from the register 
+--      RegInEn          - Enables input to come from RegIn
+--      RegMux           - Signal selects which type of register to use
 --      AddrOpSel        - 3 bit code used to determine which operation
 --                         the DMA is performing.
---      DataDB           - 8 bit data bus
+--      StackOp          - 2 bit operation which corresponds to stack operation
+--      SP               - Current value of the stack pointer
+
+--      DataDB           - 8 bit bidirectional data bus
+
+--      DataDB           - Physical Data bus used for data
+--      DataAB           - Physical Address bus used for data
+--      NewAddr          - Updated valued from the last DMA instruction
+--      DataWr           - External write signal
+--      DataRd           - External read signal
 --
 --  Outputs:
 --      DataAB           - Data address bus that is output

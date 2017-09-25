@@ -6,22 +6,15 @@ use ieee.numeric_std.all;
 --
 --  Incrementer (Incrementer)
 --
---  This is an implementation of an 8 Bit Adder/Subtractor. It takes in the
---  two operands and a subtract signal that tells the block whether to add 
---  the two operands, or whether to subtract OperandB from OperandA. The
---  block also takes in a CarryIn, and outputs a CarryOut. 
+--  This is an implementation of an incrementer. It takes in a 15 bit input
+--  and a single bit input and adds it to the 15 bits.
 --
 --  Inputs:
---      Cin              - Possible carry bit input for the system
---      Subtract         - Bit is low for addition, high for subtraction
---      A                - First operand of Adder/Subtractor
---      B                - Second operand of Adder/Subtractor.
+--      A                - 15 bit operand
+--      B                - Single bit operand.
 --
 --  Outputs:
---      Sum              - Result of the operation for Adder/Subtractor
---      Cout             - Carry flag of the highest bit operation
---      HalfCarry        - Carry out of bit 3 into bit 4
---      Overflow         - Cout Xor with carry out of bit 7. 
+--      LogicAddress     - Result of the operation 
 --
 --  Revision History:
 --     11 Aug 17  Anant Desai     Initial revision.

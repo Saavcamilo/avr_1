@@ -1,21 +1,20 @@
 ----------------------------------------------------------------------------
 --
---  Test Bench for BCD2Binary8
+--  Test Bench for AVR
 --
---  This is a test bench for the BCD2Binary8 entity.  The test bench
+--  This is a test bench for the AVR entity.  The test bench
 --  thoroughly tests the entity by exercising it and checking the outputs.
---  All possible valid 8-bit BCD values are generated and tested.  The test
---  bench entity is called bcd2binary8_tb and it is currently defined to test
---  the DataFlow architecture of the BCD2Binary8 entity.
+--  Opcode instructions are loaded through an array of std_logic_vectors,
+--  and the outputs are checked similarly as well.
 --
 --  Revision History:
 --      4/4/00   Automated/Active-VHDL    Initial revision.
 --      4/4/00   Glen George              Modified to add documentation and
 --                                           more extensive testing.
 --     11/21/05  Glen George              Updated comments and formatting.
---
+--      9/10/17  Camilo Saavedra          Changed some stimulus and fixed bugs
 ----------------------------------------------------------------------------
-
+ 
 
 library ieee;
 use ieee.std_logic_1164.all;
